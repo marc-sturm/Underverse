@@ -1,0 +1,15 @@
+Underverse:
+ - Settings:
+   - Notes folder (books, sections)
+   - stlye: base / github
+   - font: family, size, tab-width
+ - Open first command line argument
+ - Search functionality
+
+
+/*
+const int tabStop = 4;  // 4 characters
+
+QFontMetrics metrics(font);
+editor->setTabStopWidth(tabStop * metrics.width(' '));
+*/
