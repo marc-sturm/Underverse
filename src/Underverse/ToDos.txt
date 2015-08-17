@@ -3,8 +3,8 @@ Underverse:
    - Notes folder (books, sections)
    - stlye: base / github
    - font: family, size, tab-width
- - Open first command line argument
  - Search functionality
+ - About to close => save
 
 
 /*
