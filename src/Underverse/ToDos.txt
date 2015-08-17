@@ -4,7 +4,6 @@ Underverse:
    - stlye: base / github
    - font: family, size, tab-width
  - Search functionality
- - About to close => save
 
 
 /*

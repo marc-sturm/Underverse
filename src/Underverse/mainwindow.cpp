@@ -20,7 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
-
+    connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(on_actionSave_triggered()));
     if (qApp->arguments().count()==2)
     {
         loadFile(qApp->arguments().at(1));
