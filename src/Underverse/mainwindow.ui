@@ -74,6 +74,8 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionSettings"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -134,6 +136,11 @@
   <action name="actionBla">
    <property name="text">
     <string>bla</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

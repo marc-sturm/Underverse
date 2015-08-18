@@ -9,11 +9,16 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
-    MainWindow.cpp
+    MainWindow.cpp \
+    SettingsDialog.cpp
+    
 HEADERS += \ 
-    MainWindow.h
+    MainWindow.h \
+    SettingsDialog.h
+    
 FORMS += \ 
-    MainWindow.ui
+    MainWindow.ui \
+    SettingsDialog.ui
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/../../src/cppCORE

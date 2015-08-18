@@ -14,10 +14,14 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+	void resizeEvent(QResizeEvent* event);
+
     static QString markdown(QString in);
     void loadFile(QString filename);
     void updateWindowTitle();
     void addRecentFile(QString filename);
+
+	void initSettings();
     void updateRecentFilesMenu();
 
 public slots:
@@ -25,6 +29,7 @@ public slots:
     void on_actionOpen_triggered();
     void on_actionSave_triggered();
     void on_actionClose_triggered();
+	void on_actionSettings_triggered();
     void textChanged();
     void openRecentFile();
 

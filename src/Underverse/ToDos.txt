@@ -1,10 +1,11 @@
 Underverse:
- - Settings:
-   - Notes folder (books, sections)
-   - stlye: base / github
-   - font: family, size, tab-width
+ * Settings:
+   * Notes folder (books, sections)
+   * stlye: base / github
+ * highlight captions in text view
+ * F1 => Markdown help
+ - enable svn/git support
  - Search functionality
-
 
 /*
 const int tabStop = 4;  // 4 characters

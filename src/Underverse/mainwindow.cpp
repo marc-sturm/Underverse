@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "Helper.h"
 #include "Exceptions.h"
+#include "SettingsDialog.h"
 
 #include <markdown.h>
 #include <html.h>
@@ -26,12 +27,20 @@ MainWindow::MainWindow(QWidget *parent) :
         loadFile(qApp->arguments().at(1));
     }
 
+	initSettings();
     updateRecentFilesMenu();
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+	delete ui;
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+	QMainWindow::resizeEvent(event);
+	int w = width()/2;
+	ui->splitter->setSizes(QList<int>() << w << w);
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -41,7 +50,7 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Open file", Settings::string("open_folder", QCoreApplication::applicationDirPath()),"MarkDown files (*.md);;All files (*.*)");
+	QString filename = QFileDialog::getOpenFileName(this, "Open file", Settings::string("open_folder"),"MarkDown files (*.md);;All files (*.*)");
     if (filename=="") return;
 
     Settings::setString("open_folder", QFileInfo(filename).canonicalPath());
@@ -60,7 +69,13 @@ void MainWindow::on_actionSave_triggered()
 void MainWindow::on_actionClose_triggered()
 {
     on_actionSave_triggered();
-    loadFile("");
+	loadFile("");
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+	SettingsDialog dlg(this);
+	dlg.exec();
 }
 
 void MainWindow::textChanged()
@@ -120,7 +135,21 @@ void MainWindow::addRecentFile(QString filename)
 
     Settings::setStringList("recent_files", files);
 
-    updateRecentFilesMenu();
+	updateRecentFilesMenu();
+}
+
+void MainWindow::initSettings()
+{
+	//general
+	Settings::setString("data_folder", Settings::string("data_folder", qApp->applicationDirPath() + "\\data\\"));
+	//editor
+	Settings::setString("font", Settings::string("font", "Courier New"));
+	Settings::setInteger("font_size", Settings::integer("font_size", 10));
+	Settings::setInteger("tab_width", Settings::integer("tab_width", 4));
+	//view
+	Settings::setString("style", Settings::string("style", "GitHub"));
+	//misc
+	Settings::setString("open_folder", Settings::string("open_folder", qApp->applicationDirPath()));
 }
 
 void MainWindow::updateRecentFilesMenu()
