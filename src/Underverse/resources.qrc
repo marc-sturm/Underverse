@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>Resources/icon.png</file>
-        <file>Resources/github.css</file>
+        <file>Resources/Default.css</file>
+        <file>Resources/GitHub.css</file>
     </qresource>
 </RCC>

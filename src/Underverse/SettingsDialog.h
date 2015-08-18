@@ -19,6 +19,7 @@ public:
 private slots:
 	void changePage();
 	void loadSettings();
+    void storeSettings();
 
 private:
 	Ui::SettingsDialog *ui;

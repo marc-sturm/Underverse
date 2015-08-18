@@ -7,11 +7,13 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 	ui(new Ui::SettingsDialog)
 {
 	ui->setupUi(this);
+    ui->stack->setCurrentIndex(0);
+    connect(this, SIGNAL(accepted()), this, SLOT(storeSettings()));
 
 	//connect page buttons
 	foreach(QPushButton* button, findChildren<QPushButton*>())
 	{
-		if (button->objectName().endsWith("_button"))
+        if (button->isFlat())
 		{
 			connect(button, SIGNAL(clicked(bool)), this, SLOT(changePage()));
 		}
@@ -27,8 +29,9 @@ SettingsDialog::~SettingsDialog()
 
 void SettingsDialog::changePage()
 {
-	QString page_name = sender()->objectName().replace("_button", "");
+    ui->title->setText("<i>" + qobject_cast<QPushButton*>(sender())->text() + "</i>");
 
+	QString page_name = sender()->objectName().replace("_button", "");
 	for (int i=0; i<ui->stack->count(); ++i)
 	{
 		if (ui->stack->widget(i)->objectName()==page_name)
@@ -49,5 +52,19 @@ void SettingsDialog::loadSettings()
 	ui->tab_width->setValue(Settings::integer("tab_width"));
 
 	//view
-	ui->style->setCurrentText(Settings::string("style"));
+    ui->style->setCurrentText(Settings::string("style"));
+}
+
+void SettingsDialog::storeSettings()
+{
+    //general
+    Settings::setString("data_folder", ui->data_folder->text());
+
+    //editor
+    Settings::setString("font", ui->font->currentText());
+    Settings::setInteger("font_size", ui->font_size->value());
+    Settings::setInteger("tab_width", ui->tab_width->value());
+
+    //view
+    Settings::setString("style", ui->style->currentText());
 }

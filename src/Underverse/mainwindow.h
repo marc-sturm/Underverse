@@ -20,8 +20,10 @@ public:
     void loadFile(QString filename);
     void updateWindowTitle();
     void addRecentFile(QString filename);
+    void removeRecentFile(QString filename);
 
 	void initSettings();
+    void applySettings();
     void updateRecentFilesMenu();
 
 public slots:

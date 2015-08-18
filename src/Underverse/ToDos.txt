@@ -1,15 +1,8 @@
 Underverse:
- * Settings:
-   * Notes folder (books, sections)
-   * stlye: base / github
+ * notes browser
+   * books/sections
+   * new books/sectons
  * highlight captions in text view
  * F1 => Markdown help
  - enable svn/git support
  - Search functionality
-
-/*
-const int tabStop = 4;  // 4 characters
-
-QFontMetrics metrics(font);
-editor->setTabStopWidth(tabStop * metrics.width(' '));
-*/

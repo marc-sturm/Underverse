@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
 	initSettings();
+    applySettings();
     updateRecentFilesMenu();
 }
 
@@ -75,7 +76,12 @@ void MainWindow::on_actionClose_triggered()
 void MainWindow::on_actionSettings_triggered()
 {
 	SettingsDialog dlg(this);
-	dlg.exec();
+    if (dlg.exec()==QDialog::Accepted)
+    {
+        applySettings();
+        //update HTML in case style changed
+        textChanged();
+    }
 }
 
 void MainWindow::textChanged()
@@ -83,7 +89,7 @@ void MainWindow::textChanged()
     //update html
     QString text = ui->plain->toPlainText();
     text = markdown(text);
-    text.prepend("<html><head><meta charset=\"utf-8\"><link type=\"text/css\" rel=\"stylesheet\" href=\"qrc:/Resources/github.css\"/></head><body>");
+    text.prepend("<html><head><meta charset=\"utf-8\"><link type=\"text/css\" rel=\"stylesheet\" href=\"qrc:/Resources/" + Settings::string("style") + ".css\"/></head><body>");
     text.append("</body></html>");
     ui->html->setHtml(text);
 
@@ -95,7 +101,14 @@ void MainWindow::textChanged()
 void MainWindow::openRecentFile()
 {
     QAction* action = qobject_cast<QAction*>(sender());
-    loadFile(action->text());
+    QString filename = action->text();
+    if (!QFile::exists(filename))
+    {
+        QMessageBox::warning(this, "File does not exist!", "File does not exist: " + filename);
+        removeRecentFile(filename);
+        return;
+    }
+    loadFile(filename);
 }
 
 void MainWindow::loadFile(QString filename)
@@ -135,7 +148,16 @@ void MainWindow::addRecentFile(QString filename)
 
     Settings::setStringList("recent_files", files);
 
-	updateRecentFilesMenu();
+    updateRecentFilesMenu();
+}
+
+void MainWindow::removeRecentFile(QString filename)
+{
+    QStringList files = Settings::stringList("recent_files");
+    files.removeAll(filename.replace("\\", "/"));
+    Settings::setStringList("recent_files", files);
+
+    updateRecentFilesMenu();
 }
 
 void MainWindow::initSettings()
@@ -149,7 +171,17 @@ void MainWindow::initSettings()
 	//view
 	Settings::setString("style", Settings::string("style", "GitHub"));
 	//misc
-	Settings::setString("open_folder", Settings::string("open_folder", qApp->applicationDirPath()));
+    Settings::setString("open_folder", Settings::string("open_folder", qApp->applicationDirPath()));
+}
+
+void MainWindow::applySettings()
+{
+    //general - TODO
+
+    //editor
+    QFont font(Settings::string("font"), Settings::integer("font_size"));
+    ui->plain->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).width(' '));
+    ui->plain->setFont(font);
 }
 
 void MainWindow::updateRecentFilesMenu()
@@ -165,34 +197,22 @@ void MainWindow::updateRecentFilesMenu()
 
 QString MainWindow::markdown(QString in)
 {
+    if(in.size()==0) return "";
+
     struct buf *ib, *ob;
     struct sd_callbacks cbs;
     struct html_renderopt opts;
     struct sd_markdown *mkd;
 
-    if(in.size() > 0)
-    {
-        QByteArray qba = in.toUtf8();
-        const char *txt = qba.constData();
-        if(NULL == txt)
-        {
-            qDebug() << "txt was null!";
-        }
-        if(0 < qba.size())
-        {
-            ib = bufnew(qba.size());
-            bufputs(ib,txt);
-            ob = bufnew(64);
-            sdhtml_renderer(&cbs,&opts,0);
-            mkd = sd_markdown_new(0,16,&cbs,&opts);
-            sd_markdown_render(ob,ib->data,ib->size,mkd);
-            sd_markdown_free(mkd);
-            return QString::fromUtf8(bufcstr(ob));
-        }
-        else
-        {
-            qDebug() <<"qstrlen was null";
-        }
-    }
-    return "";
+    QByteArray qba = in.toUtf8();
+    const char* txt = qba.constData();
+    ib = bufnew(qba.size());
+    bufputs(ib,txt);
+    ob = bufnew(64);
+    sdhtml_renderer(&cbs,&opts,0);
+    mkd = sd_markdown_new(0,16,&cbs,&opts);
+    sd_markdown_render(ob,ib->data,ib->size,mkd);
+    sd_markdown_free(mkd);
+
+    return QString::fromUtf8(bufcstr(ob));
 }
