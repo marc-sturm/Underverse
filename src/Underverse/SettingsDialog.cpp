@@ -29,7 +29,7 @@ SettingsDialog::~SettingsDialog()
 
 void SettingsDialog::changePage()
 {
-    ui->title->setText("<i>" + qobject_cast<QPushButton*>(sender())->text() + "</i>");
+    ui->title->setText("<i><font size=+1>" + qobject_cast<QPushButton*>(sender())->text() + "</font></i>");
 
 	QString page_name = sender()->objectName().replace("_button", "");
 	for (int i=0; i<ui->stack->count(); ++i)

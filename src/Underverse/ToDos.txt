@@ -3,6 +3,8 @@ Underverse:
    * books/sections
    * new books/sectons
  * highlight captions in text view
- * F1 => Markdown help
- - enable svn/git support
+ * editor:
+   * image support
+   - section tab indentation
+ - svn/git support
  - Search functionality

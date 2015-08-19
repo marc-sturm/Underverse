@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QUrl>
 
 namespace Ui {
 class MainWindow;
@@ -16,6 +17,7 @@ public:
     ~MainWindow();
 	void resizeEvent(QResizeEvent* event);
 
+    static QByteArray fileText(QString filename);
     static QString markdown(QString in);
     void loadFile(QString filename);
     void updateWindowTitle();
@@ -32,8 +34,10 @@ public slots:
     void on_actionSave_triggered();
     void on_actionClose_triggered();
 	void on_actionSettings_triggered();
+    void on_actionMarkdownHelp_triggered();
     void textChanged();
     void openRecentFile();
+    void openExternalLink(QUrl url);
 
 private:
     Ui::MainWindow *ui;

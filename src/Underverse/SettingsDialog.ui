@@ -138,7 +138,7 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>&lt;i&gt;General&lt;/i&gt;</string>
+      <string>&lt;i&gt;&lt;font size=+1&gt;General&lt;/font&gt;&lt;/i&gt;</string>
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>
@@ -160,7 +160,7 @@
    <item row="1" column="2">
     <widget class="QStackedWidget" name="stack">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="general">
       <layout class="QFormLayout" name="formLayout_2">

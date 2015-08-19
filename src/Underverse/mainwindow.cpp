@@ -2,12 +2,14 @@
 
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QDesktopServices>
 
 #include "MainWindow.h"
 #include "Settings.h"
 #include "Helper.h"
 #include "Exceptions.h"
 #include "SettingsDialog.h"
+#include "GUIHelper.h"
 
 #include <markdown.h>
 #include <html.h>
@@ -19,6 +21,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->html->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+    connect(ui->html->page(), SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
 
     connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
     connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(on_actionSave_triggered()));
@@ -41,7 +45,18 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 {
 	QMainWindow::resizeEvent(event);
 	int w = width()/2;
-	ui->splitter->setSizes(QList<int>() << w << w);
+    ui->splitter->setSizes(QList<int>() << w << w);
+}
+
+QByteArray MainWindow::fileText(QString filename)
+{
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
+    }
+
+    return file.readAll();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -84,6 +99,13 @@ void MainWindow::on_actionSettings_triggered()
     }
 }
 
+void MainWindow::on_actionMarkdownHelp_triggered()
+{
+    QWebView view;
+    view.setHtml(markdown(fileText(":/Resources/MarkdownHelp.md")));
+    GUIHelper::showWidgetAsDialog(&view, "Markdown help", false);
+}
+
 void MainWindow::textChanged()
 {
     //update html
@@ -111,6 +133,11 @@ void MainWindow::openRecentFile()
     loadFile(filename);
 }
 
+void MainWindow::openExternalLink(QUrl url)
+{
+    QDesktopServices::openUrl(url);
+}
+
 void MainWindow::loadFile(QString filename)
 {
     file_ = filename;
@@ -120,12 +147,7 @@ void MainWindow::loadFile(QString filename)
     }
     else
     {
-        QFile file(filename);
-        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-        {
-            THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-        }
-        ui->plain->setPlainText(file.readAll());
+        ui->plain->setPlainText(fileText(filename));
 
         addRecentFile(filename);
     }
