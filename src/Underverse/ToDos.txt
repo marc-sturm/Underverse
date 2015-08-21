@@ -6,5 +6,8 @@ Underverse:
  * editor:
    * image support
    - section tab indentation
+ * help: tables
+ * README.md: image
+ - proxy support
  - svn/git support
  - Search functionality

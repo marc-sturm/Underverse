@@ -51,6 +51,10 @@
        <property name="text">
         <string>General</string>
        </property>
+       <property name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/Resources/settings.png</normaloff>:/Resources/settings.png</iconset>
+       </property>
        <property name="checkable">
         <bool>false</bool>
        </property>
@@ -71,6 +75,10 @@
        <property name="text">
         <string>Editor</string>
        </property>
+       <property name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/Resources/write.png</normaloff>:/Resources/write.png</iconset>
+       </property>
        <property name="flat">
         <bool>true</bool>
        </property>
@@ -87,6 +95,10 @@
       <widget class="QPushButton" name="view_button">
        <property name="text">
         <string>View</string>
+       </property>
+       <property name="icon">
+        <iconset resource="resources.qrc">
+         <normaloff>:/Resources/view.png</normaloff>:/Resources/view.png</iconset>
        </property>
        <property name="flat">
         <bool>true</bool>
@@ -355,7 +367,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>
