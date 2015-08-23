@@ -2,7 +2,6 @@ Underverse:
  * notes browser
    * books/sections
    * new books/sectons
- * highlight captions in text view
  * editor:
    * image support
    - section tab indentation

@@ -10,6 +10,7 @@
 #include "Exceptions.h"
 #include "SettingsDialog.h"
 #include "GUIHelper.h"
+#include "MarkDownHighlighter.h"
 
 #include <markdown.h>
 #include <html.h>
@@ -24,8 +25,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->html->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
     connect(ui->html->page(), SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
 
-    connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
-    connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(on_actionSave_triggered()));
+	new MarkDownHighlighter(ui->plain->document());
+	connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
+
+	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(on_actionSave_triggered()));
     if (qApp->arguments().count()==2)
     {
         loadFile(qApp->arguments().at(1));

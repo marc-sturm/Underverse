@@ -1,6 +1,5 @@
-# -------------------------------------------------
-# Project created by QtCreator 2010-03-29T13:28:53
-# -------------------------------------------------
+#c++11 support
+CONFIG += c++11
 
 QT += core widgets gui webkitwidgets
 
@@ -10,11 +9,13 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
     MainWindow.cpp \
-    SettingsDialog.cpp
+    SettingsDialog.cpp \
+    MarkDownHighlighter.cpp
     
 HEADERS += \ 
     MainWindow.h \
-    SettingsDialog.h
+    SettingsDialog.h \
+    MarkDownHighlighter.h
     
 FORMS += \ 
     MainWindow.ui \
