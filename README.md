@@ -7,7 +7,7 @@
 
 Underverse is in development and not usable yet.
 
-## Obtaining ngs-bits
+## Obtaining Underverse
 
 There are no binary releases yet.  
 Please use git to download the most recent development version:

@@ -64,7 +64,7 @@ QByteArray MainWindow::fileText(QString filename)
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::about(this, "About " + QApplication::applicationName(), QApplication::applicationName() + " " + QApplication::applicationVersion() +"\n\nThis program is free software.\n\nThis program is provided as is with no warranty of any kind, including the warranty of design, merchantability and fitness for a particular purpose.");
+	QMessageBox::about(this, "About " + QApplication::applicationName(),  "<p>" + QApplication::applicationName() + " " + QApplication::applicationVersion() +"<p>It is provided under the <a href=\"http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html\">GNU General Public License (GPL) Version 2.0</a>.<p>This program is provided as is with no warranty of any kind, including the warranty of design, merchantability and fitness for a particular purpose.");
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -112,11 +112,7 @@ void MainWindow::on_actionMarkdownHelp_triggered()
 void MainWindow::textChanged()
 {
     //update html
-    QString text = ui->plain->toPlainText();
-    text = markdown(text);
-    text.prepend("<html><head><meta charset=\"utf-8\"><link type=\"text/css\" rel=\"stylesheet\" href=\"qrc:/Resources/" + Settings::string("style") + ".css\"/></head><body>");
-    text.append("</body></html>");
-    ui->html->setHtml(text);
+	ui->html->setHtml(markdown(ui->plain->toPlainText()));
 
     //update window title
     modified_ = true;
@@ -239,5 +235,9 @@ QString MainWindow::markdown(QString in)
     sd_markdown_render(ob,ib->data,ib->size,mkd);
     sd_markdown_free(mkd);
 
-    return QString::fromUtf8(bufcstr(ob));
+	QString output = "<html><head><meta charset=\"utf-8\"><link type=\"text/css\" rel=\"stylesheet\" href=\"qrc:/Resources/" + Settings::string("style") + ".css\"/></head><body>";
+	output.append(QString::fromUtf8(bufcstr(ob)));
+	output.append("</body></html>");
+
+	return output;
 }
