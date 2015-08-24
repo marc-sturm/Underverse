@@ -17,9 +17,11 @@
 #include <buffer.h>
 
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent)
+	: QMainWindow(parent)
+	, ui(new Ui::MainWindow)
+	, file_()
+	, modified_(false)
 {
     ui->setupUi(this);
     ui->html->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
@@ -78,7 +80,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSave_triggered()
 {
-    if (!modified_) return;
+	if (file_=="" || !modified_) return;
 
     Helper::storeTextFile(file_, QStringList() << ui->plain->toPlainText());
     modified_ = false;
@@ -156,7 +158,12 @@ void MainWindow::loadFile(QString filename)
 
 void MainWindow::updateWindowTitle()
 {
-    setWindowTitle(qApp->applicationName() + " - " + file_ + (modified_ ? "*" : ""));
+	QString title = qApp->applicationName();
+	if (file_!="")
+	{
+		title += " - " + file_ + (modified_ ? "*" : "");
+	}
+	setWindowTitle(title);
 }
 
 void MainWindow::addRecentFile(QString filename)
