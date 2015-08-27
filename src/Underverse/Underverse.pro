@@ -10,12 +10,16 @@ RC_FILE	 = icon.rc
 SOURCES += main.cpp \
     MainWindow.cpp \
     SettingsDialog.cpp \
-    MarkDownHighlighter.cpp
+    MarkDownHighlighter.cpp \
+    Editor.cpp \
+    NotesBrowser.cpp
     
 HEADERS += \ 
     MainWindow.h \
     SettingsDialog.h \
-    MarkDownHighlighter.h
+    MarkDownHighlighter.h \
+    Editor.h \
+    NotesBrowser.h
     
 FORMS += \ 
     MainWindow.ui \

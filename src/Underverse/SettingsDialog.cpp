@@ -2,6 +2,8 @@
 #include "ui_SettingsDialog.h"
 #include "Settings.h"
 
+#include <QFileDialog>
+
 SettingsDialog::SettingsDialog(QWidget *parent) :
 	QDialog(parent),
 	ui(new Ui::SettingsDialog)
@@ -18,6 +20,8 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 			connect(button, SIGNAL(clicked(bool)), this, SLOT(changePage()));
 		}
 	}
+
+	connect(ui->change_data_folder, SIGNAL(clicked(bool)), this, SLOT(updateDataFolder()));
 
 	loadSettings();
 }
@@ -66,5 +70,13 @@ void SettingsDialog::storeSettings()
     Settings::setInteger("tab_width", ui->tab_width->value());
 
     //view
-    Settings::setString("style", ui->style->currentText());
+	Settings::setString("style", ui->style->currentText());
+}
+
+void SettingsDialog::updateDataFolder()
+{
+	QString dir = QFileDialog::getExistingDirectory(this, "Select data folder", Settings::string("data_folder"));
+	if (dir=="") return;
+
+	ui->data_folder->setText(QFileInfo(dir).canonicalFilePath());
 }

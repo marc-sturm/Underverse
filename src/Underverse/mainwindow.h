@@ -8,7 +8,8 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
+class MainWindow
+	: public QMainWindow
 {
     Q_OBJECT
 
@@ -18,15 +19,14 @@ public:
 	void resizeEvent(QResizeEvent* event);
 
     static QByteArray fileText(QString filename);
-    static QString markdown(QString in);
-    void loadFile(QString filename);
-    void updateWindowTitle();
-    void addRecentFile(QString filename);
-    void removeRecentFile(QString filename);
+	static QString markdown(QString in);
 
 	void initSettings();
     void applySettings();
-    void updateRecentFilesMenu();
+	void updateWindowTitle();
+	void updateRecentFilesMenu();
+	void addRecentFile(QString filename);
+	void removeRecentFile(QString filename);
 
 public slots:
     void on_actionAbout_triggered();
@@ -35,9 +35,13 @@ public slots:
     void on_actionClose_triggered();
 	void on_actionSettings_triggered();
     void on_actionMarkdownHelp_triggered();
+
+	void loadFile(QString filename);
     void textChanged();
+	void updateHTML();
     void openRecentFile();
     void openExternalLink(QUrl url);
+	void askWetherToStoreFile();
 
 private:
     Ui::MainWindow *ui;

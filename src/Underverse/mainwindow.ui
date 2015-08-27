@@ -19,27 +19,37 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
-    <property name="spacing">
-     <number>0</number>
-    </property>
     <property name="leftMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="topMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="rightMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="bottomMargin">
-     <number>0</number>
+     <number>1</number>
     </property>
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="QPlainTextEdit" name="plain">
+      <widget class="NotesBrowser" name="browser">
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <attribute name="headerVisible">
+        <bool>false</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
+      </widget>
+      <widget class="Editor" name="plain">
        <property name="font">
         <font>
          <family>Courier New</family>
@@ -158,6 +168,16 @@
    <class>QWebView</class>
    <extends>QWidget</extends>
    <header>QtWebKitWidgets/QWebView</header>
+  </customwidget>
+  <customwidget>
+   <class>Editor</class>
+   <extends>QPlainTextEdit</extends>
+   <header>Editor.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NotesBrowser</class>
+   <extends>QTreeWidget</extends>
+   <header>NotesBrowser.h</header>
   </customwidget>
  </customwidgets>
  <resources>

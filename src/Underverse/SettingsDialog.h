@@ -20,6 +20,7 @@ private slots:
 	void changePage();
 	void loadSettings();
     void storeSettings();
+	void updateDataFolder();
 
 private:
 	Ui::SettingsDialog *ui;

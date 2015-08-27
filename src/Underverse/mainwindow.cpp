@@ -24,21 +24,23 @@ MainWindow::MainWindow(QWidget *parent)
 	, modified_(false)
 {
     ui->setupUi(this);
+	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(askWetherToStoreFile()));
+
     ui->html->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
     connect(ui->html->page(), SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
 
-	new MarkDownHighlighter(ui->plain->document());
 	connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
 
-	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(on_actionSave_triggered()));
-    if (qApp->arguments().count()==2)
-    {
-        loadFile(qApp->arguments().at(1));
-    }
+	connect(ui->browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
 
 	initSettings();
     applySettings();
     updateRecentFilesMenu();
+
+	if (qApp->arguments().count()==2)
+	{
+		loadFile(qApp->arguments().at(1));
+	}
 }
 
 MainWindow::~MainWindow()
@@ -49,8 +51,9 @@ MainWindow::~MainWindow()
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
 	QMainWindow::resizeEvent(event);
-	int w = width()/2;
-    ui->splitter->setSizes(QList<int>() << w << w);
+	int browser_with = ui->browser->width();
+	int w = (width()-browser_with)/2;
+	ui->splitter->setSizes(QList<int>() << browser_with << w << w);
 }
 
 QByteArray MainWindow::fileText(QString filename)
@@ -89,7 +92,6 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionClose_triggered()
 {
-    on_actionSave_triggered();
 	loadFile("");
 }
 
@@ -98,9 +100,9 @@ void MainWindow::on_actionSettings_triggered()
 	SettingsDialog dlg(this);
     if (dlg.exec()==QDialog::Accepted)
     {
-        applySettings();
-        //update HTML in case style changed
-        textChanged();
+		applySettings();
+		//update HTML in case style changed
+		updateHTML();
     }
 }
 
@@ -113,12 +115,16 @@ void MainWindow::on_actionMarkdownHelp_triggered()
 
 void MainWindow::textChanged()
 {
-    //update html
-	ui->html->setHtml(markdown(ui->plain->toPlainText()));
+	updateHTML();
 
     //update window title
     modified_ = true;
-    updateWindowTitle();
+	updateWindowTitle();
+}
+
+void MainWindow::updateHTML()
+{
+	ui->html->setHtml(markdown(ui->plain->toPlainText()));
 }
 
 void MainWindow::openRecentFile()
@@ -141,6 +147,8 @@ void MainWindow::openExternalLink(QUrl url)
 
 void MainWindow::loadFile(QString filename)
 {
+	askWetherToStoreFile();
+
     file_ = filename;
     if (filename=="")
     {
@@ -149,11 +157,24 @@ void MainWindow::loadFile(QString filename)
     else
     {
         ui->plain->setPlainText(fileText(filename));
-
         addRecentFile(filename);
     }
+
     modified_ = false;
     updateWindowTitle();
+
+	//update browser
+	QString data_path = QFileInfo(Settings::string("data_folder")).canonicalFilePath();
+	QString file_path = QFileInfo(filename).canonicalFilePath();
+	if (file_path.startsWith(data_path))
+	{
+		ui->browser->show();
+		ui->browser->setSelectedFile(filename);
+	}
+	else
+	{
+		ui->browser->hide();
+	}
 }
 
 void MainWindow::updateWindowTitle()
@@ -191,7 +212,8 @@ void MainWindow::removeRecentFile(QString filename)
 void MainWindow::initSettings()
 {
 	//general
-	Settings::setString("data_folder", Settings::string("data_folder", qApp->applicationDirPath() + "\\data\\"));
+	QString default_data_path = QFileInfo(qApp->applicationDirPath() + "\\data\\").canonicalFilePath();
+	Settings::setString("data_folder", Settings::string("data_folder", default_data_path));
 	//editor
 	Settings::setString("font", Settings::string("font", "Courier New"));
 	Settings::setInteger("font_size", Settings::integer("font_size", 10));
@@ -204,12 +226,13 @@ void MainWindow::initSettings()
 
 void MainWindow::applySettings()
 {
-    //general - TODO
+	//general
+	ui->browser->setBaseDirectory(Settings::string("data_folder"));
 
-    //editor
+	//editor
     QFont font(Settings::string("font"), Settings::integer("font_size"));
-    ui->plain->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).width(' '));
-    ui->plain->setFont(font);
+	ui->plain->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).width(' '));
+	ui->plain->setFont(font);
 }
 
 void MainWindow::updateRecentFilesMenu()
@@ -220,7 +243,22 @@ void MainWindow::updateRecentFilesMenu()
     foreach(QString file, files)
     {
         ui->menuRecentFiles->addAction(file, this, SLOT(openRecentFile()));
-    }
+	}
+}
+
+void MainWindow::askWetherToStoreFile()
+{
+	if (!modified_) return;
+
+	QMessageBox box(this);
+	box.setWindowTitle(QApplication::applicationName());
+	box.setText("Save changes to '" + file_ + "'?");
+	box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+	box.setDefaultButton(QMessageBox::No);
+	if (box.exec() == QMessageBox::Yes)
+	{
+		on_actionSave_triggered();
+	}
 }
 
 QString MainWindow::markdown(QString in)

@@ -1,10 +1,7 @@
 Underverse:
- * notes browser
-   * books/sections
-   * new books/sectons
- * editor:
-   * image support
-   - section tab indentation
+ * browser: new folder/file
+ * browser: delete folder/file
+ * editor: image support, attachment support
  * help: tables
  * README.md: image
  - proxy support
