@@ -21,9 +21,8 @@ void NotesBrowser::setBaseDirectory(QString dir)
 void NotesBrowser::setSelectedFile(QString filename)
 {
 	QFileInfo info(filename);
-	qDebug() << info.fileName().replace(".md", "");
+
 	QList<QTreeWidgetItem *> matches = findItems(info.fileName().replace(".md", ""), Qt::MatchExactly | Qt::MatchRecursive);
-	qDebug() << matches;
 	foreach(QTreeWidgetItem* item, matches)
 	{
 		if (item->data(0, Qt::UserRole).toString()==info.canonicalFilePath())

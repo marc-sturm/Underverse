@@ -1,5 +1,6 @@
 Underverse:
- * browser: new folder/file
+ * view/edit mode (toggle with F2)
+ * browser: new folder/file (UTF8)
  * browser: delete folder/file
  * editor: image support, attachment support
  * help: tables

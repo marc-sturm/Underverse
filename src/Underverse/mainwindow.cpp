@@ -51,8 +51,8 @@ MainWindow::~MainWindow()
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
 	QMainWindow::resizeEvent(event);
-	int browser_with = ui->browser->width();
-	int w = (width()-browser_with)/2;
+	int browser_with = 250;
+	int w = (width() - browser_with)/2;
 	ui->splitter->setSizes(QList<int>() << browser_with << w << w);
 }
 
@@ -248,7 +248,7 @@ void MainWindow::updateRecentFilesMenu()
 
 void MainWindow::askWetherToStoreFile()
 {
-	if (!modified_) return;
+	if (file_=="" || !modified_) return;
 
 	QMessageBox box(this);
 	box.setWindowTitle(QApplication::applicationName());
