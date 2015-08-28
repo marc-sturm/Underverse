@@ -71,6 +71,14 @@ Source code by be highlighted with back-ticks:
 
 Code blocks are indented with four spaces or one tab character.
 
+##Images
+
+Images are inserted like that:
+
+    ![alt text]([image path])
+
+*alt text* is displayed when the image cannot be displayed, i.e. when it is not present.
+
 
 ##Horizontal lines
 

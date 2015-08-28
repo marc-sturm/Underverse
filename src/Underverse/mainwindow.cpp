@@ -108,7 +108,9 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::on_actionMarkdownHelp_triggered()
 {
-    QWebView view;
+	QWebView view;
+	view.page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+	connect(&view, SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
     view.setHtml(markdown(fileText(":/Resources/MarkdownHelp.md")));
     GUIHelper::showWidgetAsDialog(&view, "Markdown help", false);
 }
@@ -124,7 +126,9 @@ void MainWindow::textChanged()
 
 void MainWindow::updateHTML()
 {
-	ui->html->setHtml(markdown(ui->plain->toPlainText()));
+	QString text = markdown(ui->plain->toPlainText());
+	QString base_url = "file:/" + QFileInfo(file_).canonicalPath() + "/";
+	ui->html->setHtml(text, base_url);
 }
 
 void MainWindow::openRecentFile()
@@ -149,13 +153,19 @@ void MainWindow::loadFile(QString filename)
 {
 	askWetherToStoreFile();
 
+	if (!QFile::exists(filename))
+	{
+		QMessageBox::warning(this, "File missing", "File ' " + filename + "' is does not exist!");
+		filename = "";
+	}
+
     file_ = filename;
     if (filename=="")
     {
         ui->plain->setPlainText("");
     }
     else
-    {
+	{
         ui->plain->setPlainText(fileText(filename));
         addRecentFile(filename);
     }
