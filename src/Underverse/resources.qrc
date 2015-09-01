@@ -7,5 +7,9 @@
         <file>Resources/settings.png</file>
         <file>Resources/view.png</file>
         <file>Resources/write.png</file>
+        <file>Resources/image.png</file>
+        <file>Resources/link_attachment.png</file>
+        <file>Resources/link_global.png</file>
+        <file>Resources/link_markdown.png</file>
     </qresource>
 </RCC>

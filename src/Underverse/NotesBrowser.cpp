@@ -6,6 +6,9 @@ NotesBrowser::NotesBrowser(QWidget* parent)
 	: QTreeWidget(parent)
 {
 	setColumnCount(1);
+	setHeaderHidden(true);
+	setFrameStyle(QFrame::NoFrame);
+
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelected()));
 }
 
@@ -16,6 +19,13 @@ void NotesBrowser::setBaseDirectory(QString dir)
 	clear();
 	addChildren(nullptr, base_dir_);
 	expandAll();
+}
+
+QString NotesBrowser::selectedFile() const
+{
+	if (selectedItems().count()==0) return "";
+
+	return selectedItems()[0]->data(0, Qt::UserRole).toString();
 }
 
 void NotesBrowser::setSelectedFile(QString filename)
@@ -36,7 +46,7 @@ void NotesBrowser::onItemSelected()
 {
 	if (selectedItems().count()==0) return;
 
-	emit fileSelected(selectedItems()[0]->data(0, Qt::UserRole).toString());
+	emit fileSelected(selectedFile());
 }
 
 void NotesBrowser::addChildren(QTreeWidgetItem* parent_item, QString dir)

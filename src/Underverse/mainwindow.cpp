@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDesktopServices>
+#include <QInputDialog>
 
 #include "MainWindow.h"
 #include "Settings.h"
@@ -56,7 +57,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 	ui->splitter->setSizes(QList<int>() << browser_with << w << w);
 }
 
-QByteArray MainWindow::fileText(QString filename)
+QString MainWindow::fileText(QString filename)
 {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -64,7 +65,8 @@ QByteArray MainWindow::fileText(QString filename)
         THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
     }
 
-    return file.readAll();
+	QTextStream stream(&file); // we need a text stream to support UTF8 characters
+	return stream.readAll();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -112,7 +114,68 @@ void MainWindow::on_actionMarkdownHelp_triggered()
 	view.page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
 	connect(&view, SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
     view.setHtml(markdown(fileText(":/Resources/MarkdownHelp.md")));
-    GUIHelper::showWidgetAsDialog(&view, "Markdown help", false);
+	GUIHelper::showWidgetAsDialog(&view, "Markdown help", false);
+}
+
+void MainWindow::on_actionAddImage_triggered()
+{
+	//get image file name
+	QString image = QFileDialog::getOpenFileName(this, "Select image file", Settings::string("image_folder"), "Image (*.jpg *.png *.gif *.tiff);;All files (*.*)");
+	if (image=="") return;
+	Settings::setString("image_folder", QFileInfo(image).canonicalPath());
+
+	//copy image to 'images' folder of markdown file
+	QString folder = QFileInfo(file_).path();
+	QDir(folder).mkdir("images");
+	QString image_name = QFileInfo(image).fileName();
+	QFile::copy(image, folder + "/images/" + image_name);
+
+	//insert text
+	ui->plain->textCursor().insertText("![" + image_name + "](images/" + image_name + ")");
+}
+
+void MainWindow::on_actionAddLinkGlobal_triggered()
+{
+	QString url = QInputDialog::getText(this, "Enter link URL", "URL:");
+	if (url=="") return;
+
+	QString text = QInputDialog::getText(this, "Enter link text", "Text:", QLineEdit::Normal, url);
+	if (text=="") return;
+
+	//insert text
+	ui->plain->textCursor().insertText("[" + text + "](" + url + ")");
+}
+
+void MainWindow::on_actionAddLinkMarkdown_triggered()
+{
+	//select notes page
+	NotesBrowser browser;
+	QString data_folder = Settings::string("data_folder");
+	browser.setBaseDirectory(data_folder);
+	bool accepted = GUIHelper::showWidgetAsDialog(&browser, "Select page", true);
+	if (!accepted) return;
+
+	//insert text
+	QString file = browser.selectedFile();
+	file = file.replace(data_folder, "");
+	ui->plain->textCursor().insertText("[" + QFileInfo(file).fileName().replace(".md", "") + "](" + file + ")");
+}
+
+void MainWindow::on_actionAddLinkAttachment_triggered()
+{
+	//get attachment file name
+	QString attachment = QFileDialog::getOpenFileName(this, "Select attachment file", Settings::string("attachment_folder"));
+	if (attachment=="") return;
+	Settings::setString("attachment_folder", QFileInfo(attachment).canonicalPath());
+
+	//copy attachment to 'attachments' folder of markdown file
+	QString folder = QFileInfo(file_).path();
+	QDir(folder).mkdir("attachments");
+	QString attachment_name = QFileInfo(attachment).fileName();
+	QFile::copy(attachment, folder + "/attachments/" + attachment_name);
+
+	//insert text
+	ui->plain->textCursor().insertText("[" + attachment_name + "](attachments/" + attachment_name + ")");
 }
 
 void MainWindow::textChanged()
@@ -146,40 +209,48 @@ void MainWindow::openRecentFile()
 
 void MainWindow::openExternalLink(QUrl url)
 {
-    QDesktopServices::openUrl(url);
+	QString url_str =  url.toString().replace("file://","");
+	QString data_folder = Settings::string("data_folder");
+	if (QFile::exists(data_folder + url_str))
+	{
+		loadFile(data_folder + url_str);
+	}
+	else
+	{
+		QDesktopServices::openUrl(url);
+	}
 }
 
 void MainWindow::loadFile(QString filename)
 {
 	askWetherToStoreFile();
 
-	if (!QFile::exists(filename))
+	if (filename!="" && !QFile::exists(filename))
 	{
-		QMessageBox::warning(this, "File missing", "File ' " + filename + "' is does not exist!");
+		QMessageBox::warning(this, "File missing", "File ' " + filename + "' does not exist!");
 		filename = "";
 	}
 
     file_ = filename;
-    if (filename=="")
+	if (file_=="")
     {
         ui->plain->setPlainText("");
     }
     else
 	{
-        ui->plain->setPlainText(fileText(filename));
-        addRecentFile(filename);
+		ui->plain->setPlainText(fileText(file_));
+		addRecentFile(file_);
     }
 
     modified_ = false;
     updateWindowTitle();
+	updateToolBar();
 
 	//update browser
-	QString data_path = QFileInfo(Settings::string("data_folder")).canonicalFilePath();
-	QString file_path = QFileInfo(filename).canonicalFilePath();
-	if (file_path.startsWith(data_path))
+	if (fileInNotesFolder(file_))
 	{
 		ui->browser->show();
-		ui->browser->setSelectedFile(filename);
+		ui->browser->setSelectedFile(file_);
 	}
 	else
 	{
@@ -195,6 +266,17 @@ void MainWindow::updateWindowTitle()
 		title += " - " + file_ + (modified_ ? "*" : "");
 	}
 	setWindowTitle(title);
+}
+
+void MainWindow::updateToolBar()
+{
+	bool file_open = (file_!="");
+	bool notes_file = fileInNotesFolder(file_);
+
+	ui->actionAddImage->setEnabled(file_open && notes_file);
+	ui->actionAddLinkGlobal->setEnabled(file_open);
+	ui->actionAddLinkMarkdown->setEnabled(file_open && notes_file);
+	ui->actionAddLinkAttachment->setEnabled(file_open && notes_file);
 }
 
 void MainWindow::addRecentFile(QString filename)
@@ -216,7 +298,7 @@ void MainWindow::removeRecentFile(QString filename)
     files.removeAll(filename.replace("\\", "/"));
     Settings::setStringList("recent_files", files);
 
-    updateRecentFilesMenu();
+	updateRecentFilesMenu();
 }
 
 void MainWindow::initSettings()
@@ -295,4 +377,12 @@ QString MainWindow::markdown(QString in)
 	output.append("</body></html>");
 
 	return output;
+}
+
+bool MainWindow::fileInNotesFolder(QString filename)
+{
+	QString data_path = QFileInfo(Settings::string("data_folder")).canonicalFilePath();
+	QString file_path = QFileInfo(filename).canonicalFilePath();
+
+	return file_path.startsWith(data_path);
 }

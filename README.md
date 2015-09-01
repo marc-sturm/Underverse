@@ -11,7 +11,13 @@ Underverse is usable, but there is no stable binary release yet.
 
 * Portable
 * Markdown editor and note-taking tool in one application
-* Image/attachment support
+* Image support
+* Attachment support
+
+Explicitly not supported is:
+
+* Synchronizing notes between different devices!  
+  Use your favorite clould drive (e.g. GoogleDrive, OneDrive, DropBox) or version control system (e.g. SVN, GIT) for that!
 
 
 ## Obtaining Underverse
@@ -22,5 +28,6 @@ Please use git to clone the most recent development version:
 
 Then, open the `src/Underverse.pro` file in QtCreator and build the application.  
 After a successfull build, the binary can be found in the `bin` folder.
+
 
 

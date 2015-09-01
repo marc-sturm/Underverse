@@ -24,10 +24,27 @@ void Editor::keyPressEvent(QKeyEvent* e)
 	}
 }
 
-void Editor::changeSelectionIndentation(bool increase) //TODO
+void Editor::changeSelectionIndentation(bool increase)
 {
 	QTextCursor curs = textCursor();
-	if(!curs.hasSelection()) return;
+
+	//no selection range => insert/remove tab at cursor
+	if(!curs.hasSelection())
+	{
+		if (increase)
+		{
+			curs.insertText("\t");
+		}
+		else
+		{
+			curs.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor);
+			if (curs.selectedText()=="\t")
+			{
+				curs.removeSelectedText();
+			}
+		}
+		return;
+	}
 
 	//get start and end position
 	int spos = curs.anchor();
@@ -57,7 +74,6 @@ void Editor::changeSelectionIndentation(bool increase) //TODO
 			curs.movePosition(QTextCursor::Right, QTextCursor::KeepAnchor);
 			if (curs.selectedText()=="\t")
 			{
-				qDebug() << "S: " << curs.selectedText();
 				curs.removeSelectedText();
 			}
 			curs.movePosition(QTextCursor::NextBlock, QTextCursor::MoveAnchor);

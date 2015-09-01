@@ -13,6 +13,8 @@ class NotesBrowser
 public:
 	NotesBrowser(QWidget* parent = 0);
 	void setBaseDirectory(QString dir);
+
+	QString selectedFile() const;
 	void setSelectedFile(QString filename);
 
 signals:
