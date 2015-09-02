@@ -250,13 +250,11 @@ void MainWindow::loadFile(QString filename)
     {
         ui->plain->setPlainText("");
 		ui->plain->setEnabled(false);
-		ui->search->setEnabled(false);
     }
     else
 	{
 		ui->plain->setPlainText(Helper::fileText(file_));
 		ui->plain->setEnabled(true);
-		ui->search->setEnabled(true);
 		addRecentFile(file_);
     }
 
@@ -270,6 +268,11 @@ void MainWindow::loadFile(QString filename)
 		ui->browser->show();
 		ui->search->show();
 		ui->browser->setSelectedFile(file_);
+	}
+	else if (file_=="")
+	{
+		ui->browser->show();
+		ui->search->show();
 	}
 	else
 	{
