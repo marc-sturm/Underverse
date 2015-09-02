@@ -12,18 +12,21 @@ SOURCES += main.cpp \
     SettingsDialog.cpp \
     MarkDownHighlighter.cpp \
     Editor.cpp \
-    NotesBrowser.cpp
+    NotesBrowser.cpp \
+    SearchBox.cpp
     
 HEADERS += \ 
     MainWindow.h \
     SettingsDialog.h \
     MarkDownHighlighter.h \
     Editor.h \
-    NotesBrowser.h
+    NotesBrowser.h \
+    SearchBox.h
     
 FORMS += \ 
     MainWindow.ui \
-    SettingsDialog.ui
+    SettingsDialog.ui \
+    SearchBox.ui
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/../../src/cppCORE

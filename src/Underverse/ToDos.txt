@@ -1,9 +1,4 @@
 Underverse:
- * browser: new folder/file (UTF8)
- * browser: delete folder/file
- * help: tables
- * Search functionality
 
 optional:
- - view/edit mode (toggle with F2)
  - svn/git support

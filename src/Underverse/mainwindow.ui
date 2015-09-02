@@ -19,6 +19,9 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>3</number>
+    </property>
     <property name="leftMargin">
      <number>1</number>
     </property>
@@ -36,12 +39,36 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="NotesBrowser" name="browser">
-       <column>
-        <property name="text">
-         <string notr="true">1</string>
+      <widget class="QWidget" name="layoutWidget">
+       <layout class="QVBoxLayout" name="browser_layout">
+        <property name="spacing">
+         <number>3</number>
         </property>
-       </column>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="SearchBox" name="search" native="true"/>
+        </item>
+        <item>
+         <widget class="NotesBrowser" name="browser">
+          <column>
+           <property name="text">
+            <string notr="true">1</string>
+           </property>
+          </column>
+         </widget>
+        </item>
+       </layout>
       </widget>
       <widget class="Editor" name="plain">
        <property name="font">
@@ -79,7 +106,9 @@
      <string>Help</string>
     </property>
     <addaction name="actionMarkdownHelp"/>
+    <addaction name="separator"/>
     <addaction name="actionSettings"/>
+    <addaction name="actionOpenDataFolder"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -92,6 +121,7 @@
       <string>Recent files</string>
      </property>
     </widget>
+    <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionClose"/>
@@ -100,7 +130,14 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionToggleEditing"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -209,6 +246,27 @@
     <string>Add attachment link</string>
    </property>
   </action>
+  <action name="actionNew">
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionToggleEditing">
+   <property name="text">
+    <string>Toggle editing</string>
+   </property>
+   <property name="shortcut">
+    <string>F2</string>
+   </property>
+  </action>
+  <action name="actionOpenDataFolder">
+   <property name="text">
+    <string>Open data folder</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -225,6 +283,12 @@
    <class>NotesBrowser</class>
    <extends>QTreeWidget</extends>
    <header>NotesBrowser.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SearchBox</class>
+   <extends>QWidget</extends>
+   <header>SearchBox.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

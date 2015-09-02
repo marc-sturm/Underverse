@@ -11,5 +11,8 @@
         <file>Resources/link_attachment.png</file>
         <file>Resources/link_global.png</file>
         <file>Resources/link_markdown.png</file>
+        <file>Resources/file.png</file>
+        <file>Resources/folder.png</file>
+        <file>Resources/remove.png</file>
     </qresource>
 </RCC>

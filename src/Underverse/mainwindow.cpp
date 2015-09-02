@@ -32,7 +32,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
 
+	connect(ui->search, SIGNAL(textEdited(QString)), ui->browser, SLOT(setSearchTerms(QString)));
 	connect(ui->browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
+
+	connect(qApp, SIGNAL(focusObjectChanged(QObject*)), this, SLOT(updateToolBar()));
 
 	initSettings();
     applySettings();
@@ -41,6 +44,10 @@ MainWindow::MainWindow(QWidget *parent)
 	if (qApp->arguments().count()==2)
 	{
 		loadFile(qApp->arguments().at(1));
+	}
+	else
+	{
+		loadFile(""); //init GUI
 	}
 }
 
@@ -52,21 +59,7 @@ MainWindow::~MainWindow()
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
 	QMainWindow::resizeEvent(event);
-	int browser_with = 250;
-	int w = (width() - browser_with)/2;
-	ui->splitter->setSizes(QList<int>() << browser_with << w << w);
-}
-
-QString MainWindow::fileText(QString filename)
-{
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        THROW(FileAccessException, "Could not open file for reading: '" + filename + "'!");
-    }
-
-	QTextStream stream(&file); // we need a text stream to support UTF8 characters
-	return stream.readAll();
+	updateWidths();
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -74,12 +67,22 @@ void MainWindow::on_actionAbout_triggered()
 	QMessageBox::about(this, "About " + QApplication::applicationName(),  "<p>" + QApplication::applicationName() + " " + QApplication::applicationVersion() +"<p>It is provided under the <a href=\"http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html\">GNU General Public License (GPL) Version 2.0</a>.<p>This program is provided as is with no warranty of any kind, including the warranty of design, merchantability and fitness for a particular purpose.");
 }
 
+void MainWindow::on_actionNew_triggered()
+{
+	QString filename = QFileDialog::getSaveFileName(this, "Create new file", Settings::string("open_folder"), "MarkDown files (*.md);;All files (*.*)");
+	if (filename=="") return;
+	Settings::setString("open_folder", QFileInfo(filename).canonicalPath());
+
+	Helper::touchFile(filename);
+	loadFile(filename);
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
-	QString filename = QFileDialog::getOpenFileName(this, "Open file", Settings::string("open_folder"),"MarkDown files (*.md);;All files (*.*)");
+	QString filename = QFileDialog::getOpenFileName(this, "Open file", Settings::string("open_folder"), "MarkDown files (*.md);;All files (*.*)");
     if (filename=="") return;
-
     Settings::setString("open_folder", QFileInfo(filename).canonicalPath());
+
     loadFile(filename);
 }
 
@@ -97,6 +100,12 @@ void MainWindow::on_actionClose_triggered()
 	loadFile("");
 }
 
+void MainWindow::on_actionToggleEditing_triggered()
+{
+	ui->plain->setVisible(!ui->plain->isVisible());
+	updateWidths();
+}
+
 void MainWindow::on_actionSettings_triggered()
 {
 	SettingsDialog dlg(this);
@@ -105,7 +114,12 @@ void MainWindow::on_actionSettings_triggered()
 		applySettings();
 		//update HTML in case style changed
 		updateHTML();
-    }
+	}
+}
+
+void MainWindow::on_actionOpenDataFolder_triggered()
+{
+	QDesktopServices::openUrl(QUrl(Settings::string("data_folder")));
 }
 
 void MainWindow::on_actionMarkdownHelp_triggered()
@@ -113,7 +127,7 @@ void MainWindow::on_actionMarkdownHelp_triggered()
 	QWebView view;
 	view.page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
 	connect(&view, SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
-    view.setHtml(markdown(fileText(":/Resources/MarkdownHelp.md")));
+	view.setHtml(markdown(Helper::fileText(":/Resources/MarkdownHelp.md")));
 	GUIHelper::showWidgetAsDialog(&view, "Markdown help", false);
 }
 
@@ -235,10 +249,14 @@ void MainWindow::loadFile(QString filename)
 	if (file_=="")
     {
         ui->plain->setPlainText("");
+		ui->plain->setEnabled(false);
+		ui->search->setEnabled(false);
     }
     else
 	{
-		ui->plain->setPlainText(fileText(file_));
+		ui->plain->setPlainText(Helper::fileText(file_));
+		ui->plain->setEnabled(true);
+		ui->search->setEnabled(true);
 		addRecentFile(file_);
     }
 
@@ -250,12 +268,15 @@ void MainWindow::loadFile(QString filename)
 	if (fileInNotesFolder(file_))
 	{
 		ui->browser->show();
+		ui->search->show();
 		ui->browser->setSelectedFile(file_);
 	}
 	else
 	{
 		ui->browser->hide();
+		ui->search->hide();
 	}
+	updateWidths();
 }
 
 void MainWindow::updateWindowTitle()
@@ -270,13 +291,14 @@ void MainWindow::updateWindowTitle()
 
 void MainWindow::updateToolBar()
 {
+	bool has_focus = ui->plain->hasFocus();
 	bool file_open = (file_!="");
-	bool notes_file = fileInNotesFolder(file_);
+	bool in_notes = fileInNotesFolder(file_);
 
-	ui->actionAddImage->setEnabled(file_open && notes_file);
-	ui->actionAddLinkGlobal->setEnabled(file_open);
-	ui->actionAddLinkMarkdown->setEnabled(file_open && notes_file);
-	ui->actionAddLinkAttachment->setEnabled(file_open && notes_file);
+	ui->actionAddImage->setEnabled(has_focus && file_open && in_notes);
+	ui->actionAddLinkGlobal->setEnabled(has_focus && file_open);
+	ui->actionAddLinkMarkdown->setEnabled(has_focus && file_open && in_notes);
+	ui->actionAddLinkAttachment->setEnabled(has_focus && file_open && in_notes);
 }
 
 void MainWindow::addRecentFile(QString filename)
@@ -336,6 +358,25 @@ void MainWindow::updateRecentFilesMenu()
     {
         ui->menuRecentFiles->addAction(file, this, SLOT(openRecentFile()));
 	}
+}
+
+void MainWindow::updateWidths()
+{
+	QList<int> widths;
+
+	int browser_with = ui->browser->isVisible() ? 250 : 0;
+	widths << browser_with;
+
+	int w = width() - browser_with;
+	if (ui->plain->isVisible())
+	{
+		widths << w/2 << w/2;
+	}
+	else
+	{
+		widths << 0 << w;
+	}
+	ui->splitter->setSizes(widths);
 }
 
 void MainWindow::askWetherToStoreFile()
