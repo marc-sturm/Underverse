@@ -218,6 +218,9 @@
    <property name="text">
     <string>Add image</string>
    </property>
+   <property name="toolTip">
+    <string>Add image - only for notes</string>
+   </property>
   </action>
   <action name="actionAddLinkGlobal">
    <property name="icon">
@@ -236,6 +239,9 @@
    <property name="text">
     <string>Add local markdown link</string>
    </property>
+   <property name="toolTip">
+    <string>Add local markdown link - only for notes</string>
+   </property>
   </action>
   <action name="actionAddLinkAttachment">
    <property name="icon">
@@ -244,6 +250,9 @@
    </property>
    <property name="text">
     <string>Add attachment link</string>
+   </property>
+   <property name="toolTip">
+    <string>Add attachment link - only for notes</string>
    </property>
   </action>
   <action name="actionNew">

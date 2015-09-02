@@ -36,10 +36,20 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QLineEdit" name="edit"/>
+    <widget class="QLineEdit" name="edit">
+     <property name="toolTip">
+      <string>Enter search term(s) and press enter to start searching</string>
+     </property>
+     <property name="placeholderText">
+      <string>search notes</string>
+     </property>
+    </widget>
    </item>
    <item>
     <widget class="QPushButton" name="button">
+     <property name="toolTip">
+      <string>Clears search terms</string>
+     </property>
      <property name="text">
       <string/>
      </property>
