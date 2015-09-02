@@ -329,8 +329,13 @@ void MainWindow::removeRecentFile(QString filename)
 void MainWindow::initSettings()
 {
 	//general
-	QString default_data_path = QFileInfo(qApp->applicationDirPath() + "\\data\\").canonicalFilePath();
-	Settings::setString("data_folder", Settings::string("data_folder", default_data_path));
+	QString data_folder = Settings::string("data_folder");
+	if (data_folder=="")
+	{
+		data_folder = qApp->applicationDirPath() + "/data/";
+		QDir(data_folder).mkpath(".");
+	}
+	Settings::setString("data_folder", data_folder);
 	//editor
 	Settings::setString("font", Settings::string("font", "Courier New"));
 	Settings::setInteger("font_size", Settings::integer("font_size", 10));
