@@ -1,4 +1,5 @@
 Underverse:
+ - password support (embedded into .md file)
 
 optional:
  - svn/git support

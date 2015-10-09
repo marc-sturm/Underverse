@@ -134,6 +134,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
+    <addaction name="actionSearch"/>
     <addaction name="actionToggleEditing"/>
    </widget>
    <addaction name="menuFile"/>
@@ -274,6 +275,14 @@
   <action name="actionOpenDataFolder">
    <property name="text">
     <string>Open data folder</string>
+   </property>
+  </action>
+  <action name="actionSearch">
+   <property name="text">
+    <string>Search</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>

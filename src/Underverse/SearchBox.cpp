@@ -9,6 +9,8 @@ SearchBox::SearchBox(QWidget *parent) :
 
 	connect(ui->button, SIGNAL(clicked(bool)), this, SLOT(clearText()));
 	connect(ui->edit, SIGNAL(editingFinished()), this, SLOT(onTextChanged()));
+
+	setFocusProxy(ui->edit);
 }
 
 SearchBox::~SearchBox()

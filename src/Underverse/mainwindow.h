@@ -43,6 +43,7 @@ public slots:
 	void on_actionAddLinkGlobal_triggered();
 	void on_actionAddLinkMarkdown_triggered();
 	void on_actionAddLinkAttachment_triggered();
+	void on_actionSearch_triggered();
 
 	void loadFile(QString filename);
     void textChanged();

@@ -192,6 +192,11 @@ void MainWindow::on_actionAddLinkAttachment_triggered()
 	ui->plain->textCursor().insertText("[" + attachment_name + "](attachments/" + attachment_name + ")");
 }
 
+void MainWindow::on_actionSearch_triggered()
+{
+	ui->search->setFocus();
+}
+
 void MainWindow::textChanged()
 {
 	updateHTML();
