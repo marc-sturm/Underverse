@@ -1,5 +1,5 @@
 Underverse:
- * Use built-in clear button for search field
+ * highlight search terms in view
  * Make default view/edit mode configure (view, edit, keep_current)
  - restore location of view after editing
  - password support (embedded into .md file)
