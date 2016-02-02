@@ -19,7 +19,7 @@ public:
 
 public slots:
 	//Sets search terms (space-separated) and updates the view accordingly. If terms string is empty, search mode is left.
-	void setSearchTerms(QString terms);
+	void setSearchTerms(QStringList terms);
 
 signals:
 	void fileSelected(QString filename);

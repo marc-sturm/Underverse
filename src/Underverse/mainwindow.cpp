@@ -32,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
 
-	connect(ui->search, SIGNAL(textEdited(QString)), ui->browser, SLOT(setSearchTerms(QString)));
+	connect(ui->search, SIGNAL(textEdited(QStringList)), ui->browser, SLOT(setSearchTerms(QStringList)));
 	connect(ui->browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
 
 	connect(qApp, SIGNAL(focusObjectChanged(QObject*)), this, SLOT(updateToolBar()));
@@ -210,6 +210,22 @@ void MainWindow::updateHTML()
 {
 	QString text = markdown(ui->plain->toPlainText());
 	QString base_url = "file:/" + QFileInfo(file_).canonicalPath() + "/";
+
+	//highlight search terms
+	const QString start_tag = "<span style=\"background-color: yellow;\">";
+	const QString end_tag = "</span>";
+	int index = -1;
+	foreach(const QString& term, ui->search->terms())
+	{
+		int from_index = 0;
+		while((index = text.indexOf(term, from_index, Qt::CaseInsensitive))!=-1)
+		{
+			text.insert(index, start_tag);
+			text.insert(index+start_tag.length()+term.length(), end_tag);
+			from_index =index+start_tag.length()+term.length()+end_tag.length();
+		}
+	}
+
 	ui->html->setHtml(text, base_url);
 }
 
@@ -284,6 +300,17 @@ void MainWindow::loadFile(QString filename)
 		ui->browser->hide();
 		ui->search->hide();
 	}
+
+	//apply mode from settings
+	QString mode = Settings::string("mode");
+	if (mode=="View")
+	{
+		ui->plain->setVisible(false);
+	}
+	else if (mode=="Edit")
+	{
+		ui->plain->setVisible(true);
+	}
 	updateWidths();
 }
 
@@ -341,6 +368,7 @@ void MainWindow::initSettings()
 		QDir(data_folder).mkpath(".");
 	}
 	Settings::setString("data_folder", data_folder);
+	Settings::setString("mode", "Edit");
 	//editor
 	Settings::setString("font", Settings::string("font", "Courier New"));
 	Settings::setInteger("font_size", Settings::integer("font_size", 10));

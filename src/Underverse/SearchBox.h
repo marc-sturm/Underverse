@@ -15,9 +15,10 @@ class SearchBox
 public:
 	explicit SearchBox(QWidget *parent = 0);
 	~SearchBox();
+	QStringList terms();
 
 signals:
-	void textEdited(QString);
+	void textEdited(QStringList);
 
 private slots:
 	void clearText();
@@ -25,6 +26,7 @@ private slots:
 
 private:
 	Ui::SearchBox *ui;
+	QStringList terms_;
 };
 
 #endif // SEARCHBOX_H

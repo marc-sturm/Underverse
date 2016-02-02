@@ -306,7 +306,6 @@ kbd {
 }
 @media screen and (min-width: 914px) {
     body {
-        width: 854px;
         margin:0 auto;
     }
 }

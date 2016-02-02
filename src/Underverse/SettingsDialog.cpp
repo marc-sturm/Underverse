@@ -4,9 +4,9 @@
 
 #include <QFileDialog>
 
-SettingsDialog::SettingsDialog(QWidget *parent) :
-	QDialog(parent),
-	ui(new Ui::SettingsDialog)
+SettingsDialog::SettingsDialog(QWidget* parent)
+	: QDialog(parent)
+	, ui(new Ui::SettingsDialog)
 {
 	ui->setupUi(this);
     ui->stack->setCurrentIndex(0);
@@ -49,6 +49,7 @@ void SettingsDialog::loadSettings()
 {
 	//general
 	ui->data_folder->setText(Settings::string("data_folder"));
+	ui->mode->setCurrentText(Settings::string("mode"));
 
 	//editor
 	ui->font->setCurrentText(Settings::string("font"));
@@ -63,6 +64,7 @@ void SettingsDialog::storeSettings()
 {
     //general
     Settings::setString("data_folder", ui->data_folder->text());
+	Settings::setString("mode", ui->mode->currentText());
 
     //editor
     Settings::setString("font", ui->font->currentText());

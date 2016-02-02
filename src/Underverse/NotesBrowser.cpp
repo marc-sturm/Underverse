@@ -26,9 +26,9 @@ void NotesBrowser::setBaseDirectory(QString dir)
 	updateView();
 }
 
-void NotesBrowser::setSearchTerms(QString terms)
+void NotesBrowser::setSearchTerms(QStringList terms)
 {
-	search_terms_ = terms.split(' ', QString::SkipEmptyParts);
+	search_terms_ = terms;
 	updateView();
 }
 

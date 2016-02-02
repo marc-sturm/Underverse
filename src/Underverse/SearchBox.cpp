@@ -18,13 +18,20 @@ SearchBox::~SearchBox()
 	delete ui;
 }
 
+QStringList SearchBox::terms()
+{
+	return terms_;
+}
+
 void SearchBox::clearText()
 {
 	ui->edit->clear();
-	emit textEdited(ui->edit->text());
+	terms_.clear();
+	emit textEdited(terms_);
 }
 
 void SearchBox::onTextChanged()
 {
-	emit textEdited(ui->edit->text());
+	terms_ = ui->edit->text().split(' ', QString::SkipEmptyParts);
+	emit textEdited(terms_);
 }
