@@ -1,5 +1,4 @@
 Underverse:
- - restore location of view after editing
  - password support (embedded into .md file)
 
 optional:

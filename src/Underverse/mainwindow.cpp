@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QInputDialog>
+#include <QWebFrame>
 
 #include "MainWindow.h"
 #include "Settings.h"
@@ -226,7 +227,9 @@ void MainWindow::updateHTML()
 		}
 	}
 
+	int scroll_pos = ui->html->page()->mainFrame()->scrollBarValue(Qt::Vertical);
 	ui->html->setHtml(text, base_url);
+	ui->html->page()->mainFrame()->setScrollBarValue(Qt::Vertical, scroll_pos);
 }
 
 void MainWindow::openRecentFile()
