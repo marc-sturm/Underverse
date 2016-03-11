@@ -1,5 +1,8 @@
 Underverse:
- - password support (embedded into .md file)
+ * search for all files, not only for those in data folder
+ * follow links only inside data folder (open new instance if not in data folder)
+ * functionality to store the html page
 
 optional:
+ - password support (embedded into .md file)
  - svn/git support
