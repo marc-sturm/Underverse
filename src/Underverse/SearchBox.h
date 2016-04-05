@@ -15,6 +15,7 @@ class SearchBox
 public:
 	explicit SearchBox(QWidget *parent = 0);
 	~SearchBox();
+	void setText(QString text);
 	QStringList terms();
 
 signals:

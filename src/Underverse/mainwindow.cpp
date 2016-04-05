@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
 
 	connect(ui->search, SIGNAL(textEdited(QStringList)), ui->browser, SLOT(setSearchTerms(QStringList)));
+	connect(ui->search, SIGNAL(textEdited(QStringList)), this, SLOT(updateHTML()));
 	connect(ui->browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
 
 	connect(qApp, SIGNAL(focusObjectChanged(QObject*)), this, SLOT(updateToolBar()));
@@ -195,7 +196,15 @@ void MainWindow::on_actionAddLinkAttachment_triggered()
 
 void MainWindow::on_actionSearch_triggered()
 {
-	ui->search->setFocus();
+	if (fileInNotesFolder(file_))
+	{
+		ui->search->setFocus();
+	}
+	else
+	{
+		QString terms = QInputDialog::getText(this, "Search", "terms");
+		ui->search->setText(terms);
+	}
 }
 
 void MainWindow::on_actionExportHTML_triggered()

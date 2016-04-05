@@ -1,5 +1,6 @@
 #include "SearchBox.h"
 #include "ui_SearchBox.h"
+#include <QDebug>
 
 SearchBox::SearchBox(QWidget *parent) :
 	QWidget(parent),
@@ -16,6 +17,12 @@ SearchBox::SearchBox(QWidget *parent) :
 SearchBox::~SearchBox()
 {
 	delete ui;
+}
+
+void SearchBox::setText(QString text)
+{
+	ui->edit->setText(text);
+	onTextChanged();
 }
 
 QStringList SearchBox::terms()
