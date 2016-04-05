@@ -126,6 +126,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
+    <addaction name="actionExportHTML"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -283,6 +284,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="actionExportHTML">
+   <property name="text">
+    <string>Export HTML</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+H</string>
    </property>
   </action>
  </widget>

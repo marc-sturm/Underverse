@@ -44,6 +44,7 @@ public slots:
 	void on_actionAddLinkMarkdown_triggered();
 	void on_actionAddLinkAttachment_triggered();
 	void on_actionSearch_triggered();
+	void on_actionExportHTML_triggered();
 
 	void loadFile(QString filename);
     void textChanged();

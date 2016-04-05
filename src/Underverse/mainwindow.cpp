@@ -198,6 +198,21 @@ void MainWindow::on_actionSearch_triggered()
 	ui->search->setFocus();
 }
 
+void MainWindow::on_actionExportHTML_triggered()
+{
+	QString filename = QFileDialog::getSaveFileName(this, "Export HTML", QString(), "HTML files (*.html);;All files (*.*)");
+	if (filename.isEmpty()) return;
+
+	//store html file
+	QString html = ui->html->page()->mainFrame()->toHtml();
+	html.replace("qrc:/Resources/", "");
+	Helper::storeTextFile(filename, html.split("\n"));
+
+	//store stylesheet
+	QString sheet = Settings::string("style");
+	QFile::copy(":/Resources/" + sheet + ".css", QFileInfo(filename).absolutePath() + "/" + sheet + ".css");
+}
+
 void MainWindow::textChanged()
 {
 	updateHTML();
@@ -457,7 +472,7 @@ QString MainWindow::markdown(QString in)
     sd_markdown_render(ob,ib->data,ib->size,mkd);
     sd_markdown_free(mkd);
 
-	QString output = "<html><head><meta charset=\"utf-8\"><link type=\"text/css\" rel=\"stylesheet\" href=\"qrc:/Resources/" + Settings::string("style") + ".css\"/></head><body>";
+	QString output = "<html>\n<head>\n<meta charset=\"utf-8\">\n<link type=\"text/css\" rel=\"stylesheet\" href=\"qrc:/Resources/" + Settings::string("style") + ".css\"/>\n</head>\n<body>\n";
 	output.append(QString::fromUtf8(bufcstr(ob)));
 	output.append("</body></html>");
 
