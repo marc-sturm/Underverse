@@ -62,7 +62,7 @@ void NotesBrowser::performSearch()
 		QString content = Helper::fileText(file);
 		foreach(QString term, search_terms_)
 		{
-			score += 100 * file.count(term, Qt::CaseInsensitive);
+			score += 100 * file.mid(base_dir_.count()).count(term, Qt::CaseInsensitive);
 			score += 1 * content.count(term, Qt::CaseInsensitive);
 		}
 
@@ -75,6 +75,7 @@ void NotesBrowser::performSearch()
 	//display hits with score>0
 	foreach(FileScore pair, scores)
 	{
+		//qDebug() << pair.first.mid(base_dir_.count()) << pair.second;
 		if (pair.second==0) break;
 
 		QFileInfo info(pair.first);
