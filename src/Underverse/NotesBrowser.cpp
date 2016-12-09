@@ -49,8 +49,7 @@ void NotesBrowser::updateView()
 
 void NotesBrowser::performSearch()
 {
-	QStringList files;
-	Helper::findFiles(base_dir_, "*.md", files);
+	QStringList files = Helper::findFiles(base_dir_, "*.md", true);
 
 	//calculate scores
 	typedef QPair<QString, int> FileScore;
