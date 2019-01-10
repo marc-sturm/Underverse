@@ -126,11 +126,12 @@ void MainWindow::on_actionOpenDataFolder_triggered()
 
 void MainWindow::on_actionMarkdownHelp_triggered()
 {
-	QWebView view;
-	view.page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
-	connect(&view, SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
-	view.setHtml(markdown(Helper::fileText(":/Resources/MarkdownHelp.md")));
-	GUIHelper::showWidgetAsDialog(&view, "Markdown help", false);
+        QWebView* view = new QWebView();
+        view->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks);
+        connect(view, SIGNAL(linkClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
+        view->setHtml(markdown(Helper::fileText(":/Resources/MarkdownHelp.md")));
+        auto dlg = GUIHelper::createDialog(view, "Markdown help", "", false);
+        dlg->exec();
 }
 
 void MainWindow::on_actionAddImage_triggered()
@@ -165,14 +166,14 @@ void MainWindow::on_actionAddLinkGlobal_triggered()
 void MainWindow::on_actionAddLinkMarkdown_triggered()
 {
 	//select notes page
-	NotesBrowser browser;
+        NotesBrowser* browser = new NotesBrowser();
 	QString data_folder = Settings::string("data_folder");
-	browser.setBaseDirectory(data_folder);
-	bool accepted = GUIHelper::showWidgetAsDialog(&browser, "Select page", true);
-	if (!accepted) return;
+        browser->setBaseDirectory(data_folder);
+        auto dlg = GUIHelper::createDialog(browser, "Select page", "", true);
+        if (dlg->exec()==QDialog::Rejected) return;
 
 	//insert text
-	QString file = browser.selectedFile();
+        QString file = browser->selectedFile();
 	file = file.replace(data_folder, "");
 	ui->plain->textCursor().insertText("[" + QFileInfo(file).fileName().replace(".md", "") + "](" + file + ")");
 }
