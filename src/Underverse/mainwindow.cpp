@@ -92,7 +92,12 @@ void MainWindow::on_actionSave_triggered()
 {
 	if (file_=="" || !modified_) return;
 
-    Helper::storeTextFile(file_, QStringList() << ui->plain->toPlainText());
+    QStringList text = ui->plain->toPlainText().split("\n");
+    while(text.last().trimmed().isEmpty())
+    {
+        text.removeLast();
+    }
+    Helper::storeTextFile(file_, text);
     modified_ = false;
     updateWindowTitle();
 }
