@@ -1,7 +1,7 @@
 #c++11 support
 CONFIG += c++11
 
-QT += core widgets gui webkitwidgets
+QT += core widgets gui network
 
 TARGET = Underverse
 TEMPLATE = app

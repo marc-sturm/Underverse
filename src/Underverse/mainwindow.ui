@@ -57,10 +57,17 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="SearchBox" name="search" native="true"/>
+         <widget class="SearchBox" name="search" native="true">
+          <property name="focusPolicy">
+           <enum>Qt::StrongFocus</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="NotesBrowser" name="browser">
+          <property name="focusPolicy">
+           <enum>Qt::StrongFocus</enum>
+          </property>
           <column>
            <property name="text">
             <string notr="true">1</string>
@@ -81,11 +88,21 @@
         <enum>QFrame::NoFrame</enum>
        </property>
       </widget>
-      <widget class="QWebView" name="html">
-       <property name="url">
-        <url>
-         <string>about:blank</string>
-        </url>
+      <widget class="QTextBrowser" name="html">
+       <property name="focusPolicy">
+        <enum>Qt::StrongFocus</enum>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>false</bool>
+       </property>
+       <property name="openLinks">
+        <bool>false</bool>
        </property>
       </widget>
      </widget>
@@ -108,7 +125,7 @@
     <addaction name="actionMarkdownHelp"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
-    <addaction name="actionOpenDataFolder"/>
+    <addaction name="actionOpenNotesFolder"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
@@ -126,7 +143,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
-    <addaction name="actionExportHTML"/>
+    <addaction name="actionOpenNotes"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -159,9 +176,9 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionAddImage"/>
-   <addaction name="separator"/>
    <addaction name="actionAddLinkGlobal"/>
+   <addaction name="separator"/>
+   <addaction name="actionAddImage"/>
    <addaction name="actionAddLinkMarkdown"/>
    <addaction name="actionAddLinkAttachment"/>
   </widget>
@@ -273,9 +290,9 @@
     <string>F2</string>
    </property>
   </action>
-  <action name="actionOpenDataFolder">
+  <action name="actionOpenNotesFolder">
    <property name="text">
-    <string>Open data folder</string>
+    <string>Open notes folder</string>
    </property>
   </action>
   <action name="actionSearch">
@@ -294,13 +311,13 @@
     <string>Ctrl+H</string>
    </property>
   </action>
+  <action name="actionOpenNotes">
+   <property name="text">
+    <string>Open notes</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>QWebView</class>
-   <extends>QWidget</extends>
-   <header>QtWebKitWidgets/QWebView</header>
-  </customwidget>
   <customwidget>
    <class>Editor</class>
    <extends>QPlainTextEdit</extends>
