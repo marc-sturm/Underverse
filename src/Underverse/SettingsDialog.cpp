@@ -49,30 +49,22 @@ void SettingsDialog::loadSettings()
 {
 	//general
 	ui->data_folder->setText(Settings::string("data_folder"));
-	ui->mode->setCurrentText(Settings::string("mode"));
 
 	//editor
 	ui->font->setCurrentText(Settings::string("font"));
 	ui->font_size->setValue(Settings::integer("font_size"));
 	ui->tab_width->setValue(Settings::integer("tab_width"));
-
-	//view
-    ui->style->setCurrentText(Settings::string("style"));
 }
 
 void SettingsDialog::storeSettings()
 {
     //general
-    Settings::setString("data_folder", ui->data_folder->text());
-	Settings::setString("mode", ui->mode->currentText());
+	Settings::setString("data_folder", ui->data_folder->text());
 
     //editor
     Settings::setString("font", ui->font->currentText());
     Settings::setInteger("font_size", ui->font_size->value());
-    Settings::setInteger("tab_width", ui->tab_width->value());
-
-    //view
-	Settings::setString("style", ui->style->currentText());
+	Settings::setInteger("tab_width", ui->tab_width->value());
 }
 
 void SettingsDialog::updateDataFolder()

@@ -266,7 +266,6 @@ void MainWindow::openRecentFile()
 void MainWindow::openExternalLink(QUrl url)
 {
     QString url_str = url.toString().trimmed();
-    qDebug() << url_str;
 
     //web link
     if (url_str.startsWith("http://") || url_str.startsWith("https://"))
@@ -409,8 +408,6 @@ void MainWindow::initSettings()
     Settings::setString("font", Settings::contains("font") ? Settings::string("font") : "Courier New");
     Settings::setInteger("font_size", Settings::contains("font_size") ? Settings::integer("font_size") : 10);
     Settings::setInteger("tab_width", Settings::contains("tab_width") ? Settings::integer("tab_width") : 4);
-    //view
-    Settings::setString("style", Settings::contains("style") ? Settings::string("style") : "GitHub");
     //misc
     Settings::setString("open_folder", Settings::contains("open_folder") ? Settings::string("open_folder") : qApp->applicationDirPath());
 }
@@ -489,27 +486,18 @@ QString MainWindow::markdownToHtml(QString in)
     mkd = sd_markdown_new(0,16,&cbs,&opts);
     sd_markdown_render(ob,ib->data,ib->size,mkd);
     sd_markdown_free(mkd);
-    QString output = "<html>\n";
-
-    //create style file
-    QString style_name = Settings::string("style");
-    QStringList default_paths = QStandardPaths::standardLocations(QStandardPaths::AppLocalDataLocation);
-    QString style_file = default_paths.value(0, "") + "/" + style_name + ".css";
-    if (!QFile::exists(style_file))
-    {
-        QString style_text = Helper::fileText(":/Resources/" + Settings::string("style") + ".css");
-        Helper::storeTextFile(style_file, style_text.split("\n"));
-    }
 
     //header
-    output += "<head>\n<meta charset=\"utf-8\">\n";
-    output += "<link type=\"text/css\" rel=\"stylesheet\" href=\"" + style_file + "\"/>";
+    QString output = "<html>\n";
+    output += "<head>\n";
+    output += "  <meta charset=\"utf-8\">\n";
     output += "</head>\n";
 
     //boby
     output += "<body>\n";
     output += QString::fromUtf8(bufcstr(ob));
-    output += "</body>\n</html>";
+    output += "</body>\n";
+    output += "</html>";
 
     return output;
 }

@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>Resources/icon.png</file>
-        <file>Resources/Default.css</file>
-        <file>Resources/GitHub.css</file>
         <file>Resources/MarkdownHelp.md</file>
         <file>Resources/settings.png</file>
         <file>Resources/view.png</file>
