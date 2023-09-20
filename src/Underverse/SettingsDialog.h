@@ -21,6 +21,7 @@ private slots:
 	void loadSettings();
     void storeSettings();
 	void updateDataFolder();
+	void selectGitExecutable();
 
 private:
 	Ui::SettingsDialog *ui;

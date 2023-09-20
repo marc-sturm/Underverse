@@ -1,6 +1,8 @@
 #ifndef NOTESBROWSER_H
 #define NOTESBROWSER_H
 
+#include "Git.h"
+
 #include <QTreeWidget>
 #include <QFileSystemModel>
 #include <QFileIconProvider>
@@ -31,7 +33,7 @@ protected slots:
 protected:
 	void updateView();
 	void performSearch();
-	void addChildren(QTreeWidgetItem* item, QString dir);
+	void addChildren(QTreeWidgetItem* item, QString dir, const QHash<QString, GitStatus>& status);
 	bool checkValidFileName(QString name);
 
 	QFileIconProvider icon_provier_;

@@ -51,6 +51,7 @@ public slots:
     void on_actionAddLinkAttachment_triggered();
     void on_actionSearch_triggered();
     void on_actionOpenNotes_triggered();
+	void on_actionDebug_triggered();
 
     void loadFile(QString filename);
     void textChanged();
@@ -64,6 +65,7 @@ private:
     Ui::MainWindow *ui;
     QString file_;
     bool modified_;
+	bool notes_mode_;
 };
 
 #endif // MAINWINDOW_H

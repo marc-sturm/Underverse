@@ -1,4 +1,4 @@
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 
 #include <QMessageBox>
 #include <QFileDialog>
@@ -37,9 +37,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(updateToolBar()));
 
-    initSettings();
-    applySettings();
-    updateRecentFilesMenu();
+	initSettings();
+	applySettings();
+	updateRecentFilesMenu();
 
     if (qApp->arguments().count()==2)
     {
@@ -134,6 +134,7 @@ void MainWindow::on_actionMarkdownHelp_triggered()
     connect(view, SIGNAL(anchorClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
     view->setHtml(markdownToHtml(Helper::fileText(":/Resources/MarkdownHelp.md")));
     auto dlg = GUIHelper::createDialog(view, "Markdown help", "", false);
+	dlg->setMinimumSize(800, 600);
     dlg->exec();
 }
 
@@ -141,7 +142,7 @@ void MainWindow::on_actionAddImage_triggered()
 {
     //get image file name
     QString image = QFileDialog::getOpenFileName(this, "Select image file", notesFolder(), "Image (*.jpg *.png *.gif *.tiff);;All files (*.*)");
-    if (image=="") return;
+	if (image=="") return;
 
     //copy image to 'images' folder of markdown file
     QDir(fileFolder()).mkdir("images");
@@ -154,7 +155,7 @@ void MainWindow::on_actionAddImage_triggered()
 
 void MainWindow::on_actionAddLinkGlobal_triggered()
 {
-    QString url = QInputDialog::getText(this, "Enter link URL", "URL:");
+	QString url = QInputDialog::getText(this, "Enter link URL", "URL:");
     if (url=="") return;
 
     QString text = QInputDialog::getText(this, "Enter link text", "Text:", QLineEdit::Normal, url);
@@ -168,6 +169,7 @@ void MainWindow::on_actionAddLinkMarkdown_triggered()
 {
     //select notes page
     NotesBrowser* browser = new NotesBrowser();
+	browser->setMinimumSize(800, 600);
     browser->setBaseDirectory(notesFolder());
     auto dlg = GUIHelper::createDialog(browser, "Select page", "", true);
     if (dlg->exec()==QDialog::Rejected) return;
@@ -195,7 +197,7 @@ void MainWindow::on_actionAddLinkAttachment_triggered()
 
 void MainWindow::on_actionSearch_triggered()
 {
-    if (fileIsInNotesFolder())
+	if (notes_mode_)
     {
         ui->search->setFocus();
     }
@@ -208,7 +210,11 @@ void MainWindow::on_actionSearch_triggered()
 
 void MainWindow::on_actionOpenNotes_triggered()
 {
-    loadFile("");
+	loadFile("");
+}
+
+void MainWindow::on_actionDebug_triggered()
+{
 }
 
 void MainWindow::textChanged()
@@ -319,22 +325,23 @@ void MainWindow::loadFile(QString filename)
     updateToolBar();
 
     //update browser
-    if (fileIsInNotesFolder())
+	if (file_=="" || fileIsInNotesFolder())
     {
         ui->browser->show();
         ui->search->show();
-        ui->browser->setSelectedFile(file_);
-    }
-    else if (file_=="")
-    {
-        ui->browser->show();
-        ui->search->show();
+		notes_mode_ = true;
+
+		if (file_!="")
+		{
+			ui->browser->setSelectedFile(file_);
+		}
     }
     else
     {
         ui->browser->hide();
         ui->search->hide();
-    }
+		notes_mode_ = false;
+	}
 
     //apply mode from settings
     QString mode = Settings::string("mode");
@@ -373,7 +380,7 @@ void MainWindow::updateToolBar()
 
 void MainWindow::addRecentFile(QString filename)
 {
-    QStringList files = Settings::stringList("recent_files");
+	QStringList files = Settings::stringList("recent_files", true);
 
     files.prepend(filename.replace("\\", "/"));
     files.removeDuplicates();
@@ -386,7 +393,7 @@ void MainWindow::addRecentFile(QString filename)
 
 void MainWindow::removeRecentFile(QString filename)
 {
-    QStringList files = Settings::stringList("recent_files");
+	QStringList files = Settings::stringList("recent_files", true);
     files.removeAll(filename.replace("\\", "/"));
     Settings::setStringList("recent_files", files);
 
@@ -396,19 +403,31 @@ void MainWindow::removeRecentFile(QString filename)
 void MainWindow::initSettings()
 {
     //general
-    QString data_folder = Settings::string("data_folder");
+	QString data_folder = Settings::string("data_folder", true);
     if (data_folder=="")
-    {
-            data_folder = qApp->applicationDirPath() + "/data/";
-            QDir(data_folder).mkpath(".");
-    }
+	{
+		data_folder = qApp->applicationDirPath() + "/data/";
+		QDir(data_folder).mkpath(".");
+	}
     Settings::setString("data_folder", data_folder);
-    Settings::setString("mode", "Edit");
-    //editor
+	Settings::setString("mode", Settings::contains("mode") ? Settings::string("mode") : "Edit");
+
+	QString git_exe = Settings::string("git_exe", true);
+	if (git_exe=="")
+	{
+		git_exe = QStandardPaths::findExecutable("git");
+	}
+	Settings::setString("git_exe", git_exe);
+
+
+
+
+	//editor
     Settings::setString("font", Settings::contains("font") ? Settings::string("font") : "Courier New");
     Settings::setInteger("font_size", Settings::contains("font_size") ? Settings::integer("font_size") : 10);
     Settings::setInteger("tab_width", Settings::contains("tab_width") ? Settings::integer("tab_width") : 4);
-    //misc
+
+	//misc
     Settings::setString("open_folder", Settings::contains("open_folder") ? Settings::string("open_folder") : qApp->applicationDirPath());
 }
 
@@ -427,7 +446,7 @@ void MainWindow::updateRecentFilesMenu()
 {
     ui->menuRecentFiles->clear();
 
-    QStringList files = Settings::stringList("recent_files");
+	QStringList files = Settings::stringList("recent_files", true);
     foreach(QString file, files)
     {
         ui->menuRecentFiles->addAction(file, this, SLOT(openRecentFile()));

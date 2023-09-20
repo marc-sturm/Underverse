@@ -21,7 +21,8 @@ SettingsDialog::SettingsDialog(QWidget* parent)
 		}
 	}
 
-	connect(ui->change_data_folder, SIGNAL(clicked(bool)), this, SLOT(updateDataFolder()));
+	connect(ui->data_folder, SIGNAL(clicked(QPoint)), this, SLOT(updateDataFolder()));
+	connect(ui->git_exe, SIGNAL(clicked(QPoint)), this, SLOT(selectGitExecutable()));
 
 	loadSettings();
 }
@@ -49,6 +50,8 @@ void SettingsDialog::loadSettings()
 {
 	//general
 	ui->data_folder->setText(Settings::string("data_folder"));
+	ui->mode->setCurrentText(Settings::string("mode"));
+	ui->git_exe->setText(Settings::string("git_exe"));
 
 	//editor
 	ui->font->setCurrentText(Settings::string("font"));
@@ -60,6 +63,8 @@ void SettingsDialog::storeSettings()
 {
     //general
 	Settings::setString("data_folder", ui->data_folder->text());
+	Settings::setString("mode", ui->mode->currentText());
+	Settings::setString("git_exe", ui->git_exe->text());
 
     //editor
     Settings::setString("font", ui->font->currentText());
@@ -73,4 +78,12 @@ void SettingsDialog::updateDataFolder()
 	if (dir=="") return;
 
 	ui->data_folder->setText(QFileInfo(dir).canonicalFilePath());
+}
+
+void SettingsDialog::selectGitExecutable()
+{
+	QString exe = QFileDialog::getOpenFileName(this, "Select git executable");
+	if (exe=="") return;
+
+	ui->git_exe->setText(QFileInfo(exe).canonicalFilePath());
 }

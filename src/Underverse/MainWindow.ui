@@ -115,7 +115,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
@@ -181,6 +181,7 @@
    <addaction name="actionAddImage"/>
    <addaction name="actionAddLinkMarkdown"/>
    <addaction name="actionAddLinkAttachment"/>
+   <addaction name="actionDebug"/>
   </widget>
   <action name="actionAbout">
    <property name="text">
@@ -314,6 +315,11 @@
   <action name="actionOpenNotes">
    <property name="text">
     <string>Open notes</string>
+   </property>
+  </action>
+  <action name="actionDebug">
+   <property name="text">
+    <string>Debug</string>
    </property>
   </action>
  </widget>

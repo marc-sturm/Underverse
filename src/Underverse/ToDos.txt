@@ -1,5 +1,7 @@
 Underverse:
 
 optional:
- - password support (embedded into .md file)
- - svn/git support
+- commit git changes when closing the the application
+- delete files/folders
+- password support (embedded into .md file)
+

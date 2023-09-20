@@ -9,8 +9,9 @@
         <file>Resources/link_attachment.png</file>
         <file>Resources/link_global.png</file>
         <file>Resources/link_markdown.png</file>
-        <file>Resources/file.png</file>
-        <file>Resources/folder.png</file>
         <file>Resources/remove.png</file>
+        <file>Resources/debug.png</file>
+        <file>Resources/icon_blue.png</file>
+        <file>Resources/icon_grey.png</file>
     </qresource>
 </RCC>

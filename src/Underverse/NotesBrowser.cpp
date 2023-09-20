@@ -1,6 +1,8 @@
 #include "NotesBrowser.h"
 #include "Settings.h"
 #include "Helper.h"
+#include "GUIHelper.h"
+#include "Git.h"
 
 #include <QFileSystemModel>
 #include <QDebug>
@@ -8,6 +10,7 @@
 #include <QPair>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QProcess>
 
 NotesBrowser::NotesBrowser(QWidget* parent)
 	: QTreeWidget(parent)
@@ -16,6 +19,7 @@ NotesBrowser::NotesBrowser(QWidget* parent)
 	setHeaderHidden(true);
 	setFrameStyle(QFrame::NoFrame);
 	setContextMenuPolicy(Qt::CustomContextMenu);
+	setMinimumWidth(350);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onContextMenu(QPoint)));
 	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelected()));
 }
@@ -38,7 +42,8 @@ void NotesBrowser::updateView()
 
 	if (search_terms_.count()==0)
 	{
-		addChildren(nullptr, base_dir_);
+		QHash<QString, GitStatus> status = Git::status(base_dir_);
+		addChildren(nullptr, base_dir_, status);
 		expandAll();
 	}
 	else
@@ -133,8 +138,8 @@ void NotesBrowser::onContextMenu(QPoint p)
 
 	//execute menu
 	QMenu menu;
-	menu.addAction(QIcon(":/Resources/file.png"), "New file");
-	menu.addAction(QIcon(":/Resources/folder.png"), "New folder");
+	menu.addAction(icon_provier_.icon(QFileIconProvider::File), "New file");
+	menu.addAction(icon_provier_.icon(QFileIconProvider::Folder), "New folder");
 	QAction* action = menu.exec(mapToGlobal(p));
 	if (action==nullptr) return;
 
@@ -162,11 +167,11 @@ void NotesBrowser::onContextMenu(QPoint p)
 	}
 }
 
-void NotesBrowser::addChildren(QTreeWidgetItem* parent_item, QString dir)
+void NotesBrowser::addChildren(QTreeWidgetItem* parent_item, QString dir, const QHash<QString, GitStatus>& status)
 {
 	QFileInfoList infos = QDir(dir).entryInfoList();
 
-	foreach(QFileInfo info, infos)
+	foreach(const QFileInfo& info, infos)
 	{
 		QString name = info.fileName();
 		if (name=="." || name==".." || name=="images" || name=="attachments") continue;
@@ -174,12 +179,33 @@ void NotesBrowser::addChildren(QTreeWidgetItem* parent_item, QString dir)
 
 		QTreeWidgetItem* item = new QTreeWidgetItem();
 		item->setText(0, name.replace(".md", ""));
-		item->setIcon(0, icon_provier_.icon(info));
-		item->setData(0, Qt::UserRole, info.canonicalFilePath());
+		QString canonical_name = info.canonicalFilePath();
+		item->setData(0, Qt::UserRole, canonical_name);
+		QIcon icon = info.isDir() ? icon_provier_.icon(QFileIconProvider::Folder) : QIcon(":/Resources/icon.png");
+		if (info.isFile() && status.contains(canonical_name))
+		{
+			GitStatus git_enum = status[canonical_name];
+			if (git_enum==GitStatus::ADDED)
+			{
+				item->setToolTip(0, "Git status: added");
+				icon = QIcon(":/Resources/icon_blue.png");
+			}
+			else if (git_enum==GitStatus::MODIFIED)
+			{
+				item->setToolTip(0, "Git status: modified");
+				icon = QIcon(":/Resources/icon_blue.png");
+			}
+			else if (git_enum==GitStatus::NOT_VERSIONED)
+			{
+				item->setToolTip(0, "Git status: modified");
+				icon = QIcon(":/Resources/icon_grey.png");
+			}
+		}
+		item->setIcon(0, icon);
 
 		if(info.isDir())
 		{
-			addChildren(item ,info.filePath());
+			addChildren(item ,info.filePath(), status);
 			item->setFlags(Qt::ItemIsEnabled); // remove Qt::ItemIsSelectable
 		}
 
@@ -191,7 +217,6 @@ void NotesBrowser::addChildren(QTreeWidgetItem* parent_item, QString dir)
 		{
 			parent_item->addChild(item);
 		}
-
 	}
 }
 

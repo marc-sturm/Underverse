@@ -8,6 +8,7 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
+    Git.cpp \
     MainWindow.cpp \
     SettingsDialog.cpp \
     MarkDownHighlighter.cpp \
@@ -15,7 +16,7 @@ SOURCES += main.cpp \
     NotesBrowser.cpp \
     SearchBox.cpp
     
-HEADERS += \ 
+HEADERS += Git.h \
     MainWindow.h \
     SettingsDialog.h \
     MarkDownHighlighter.h \
