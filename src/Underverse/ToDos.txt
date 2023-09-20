@@ -1,6 +1,5 @@
 Underverse:
 
 optional:
-- commit git changes when closing the the application
 - password support (embedded into .md file)
 

@@ -166,8 +166,8 @@
    </property>
    <property name="iconSize">
     <size>
-     <width>16</width>
-     <height>16</height>
+     <width>20</width>
+     <height>20</height>
     </size>
    </property>
    <attribute name="toolBarArea">
@@ -181,7 +181,6 @@
    <addaction name="actionAddImage"/>
    <addaction name="actionAddLinkMarkdown"/>
    <addaction name="actionAddLinkAttachment"/>
-   <addaction name="actionDebug"/>
   </widget>
   <action name="actionAbout">
    <property name="text">
@@ -318,6 +317,10 @@
    </property>
   </action>
   <action name="actionDebug">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Resources/debug.png</normaloff>:/Resources/debug.png</iconset>
+   </property>
    <property name="text">
     <string>Debug</string>
    </property>

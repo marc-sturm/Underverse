@@ -34,6 +34,7 @@ public:
     void updateWidths();
     void addRecentFile(QString filename);
     void removeRecentFile(QString filename);
+	QByteArray execute(QString exe, QStringList args, QString wd="");
 
 public slots:
     void on_actionAbout_triggered();
@@ -59,7 +60,9 @@ public slots:
     void updateToolBar();
     void openRecentFile();
     void openExternalLink(QUrl url);
+	void aboutToClose();
     void askWetherToStoreFile();
+	void askForGitCommit();
 
 private:
     Ui::MainWindow *ui;

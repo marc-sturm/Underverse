@@ -5,6 +5,7 @@
 #include <QDesktopServices>
 #include <QInputDialog>
 #include <QScrollBar>
+#include <QProcess>
 
 #include "MainWindow.h"
 #include "Settings.h"
@@ -26,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     , modified_(false)
 {
     ui->setupUi(this);
-    connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(askWetherToStoreFile()));
+	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToClose()));
 
     connect(ui->html, SIGNAL(anchorClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
     connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
@@ -294,7 +295,13 @@ void MainWindow::openExternalLink(QUrl url)
         return;
     }
 
-    QMessageBox::warning(this, "Link error", "Could not open link to file: " + url_str);
+	QMessageBox::warning(this, "Link error", "Could not open link to file: " + url_str);
+}
+
+void MainWindow::aboutToClose()
+{
+	askWetherToStoreFile();
+	askForGitCommit();
 }
 
 void MainWindow::loadFile(QString filename)
@@ -397,7 +404,21 @@ void MainWindow::removeRecentFile(QString filename)
     files.removeAll(filename.replace("\\", "/"));
     Settings::setStringList("recent_files", files);
 
-    updateRecentFilesMenu();
+	updateRecentFilesMenu();
+}
+
+QByteArray MainWindow::execute(QString exe, QStringList args, QString wd)
+{
+	QProcess process;
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	if (!wd.isEmpty()) process.setWorkingDirectory(wd);
+	process.start(exe, args);
+	if (!process.waitForFinished(-1))
+	{
+		QByteArray output = process.readAll();
+		THROW(Exception, "Could not execute '" + exe + " " + args.join("\n") + "':\n" + output);
+	}
+	return process.readAll();
 }
 
 void MainWindow::initSettings()
@@ -418,9 +439,6 @@ void MainWindow::initSettings()
 		git_exe = QStandardPaths::findExecutable("git");
 	}
 	Settings::setString("git_exe", git_exe);
-
-
-
 
 	//editor
     Settings::setString("font", Settings::contains("font") ? Settings::string("font") : "Courier New");
@@ -484,7 +502,89 @@ void MainWindow::askWetherToStoreFile()
     if (box.exec() == QMessageBox::Yes)
     {
             on_actionSave_triggered();
-    }
+	}
+}
+
+void MainWindow::askForGitCommit()
+{
+	//pre-checks
+	if(!notes_mode_) return;
+	QString notes_folder = notesFolder();
+	if (!Git::isRepo(notes_folder)) return;
+
+	//get Git status
+	QHash<QString, GitStatus> status;
+	try
+	{
+		status = Git::status(notes_folder);
+	}
+	catch (const Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error in getting git status");
+	}
+	if (status.isEmpty()) return;
+
+	//determine files
+	QStringList files_add_commit;
+	QStringList files_delete;
+	for (auto it=status.begin(); it!=status.end(); ++it)
+	{
+		GitStatus status_enum = it.value();
+
+		if (status_enum==GitStatus::MODIFIED || status_enum==GitStatus::ADDED || status_enum==GitStatus::NOT_VERSIONED)
+		{
+			files_add_commit << it.key();
+		}
+		if (status_enum==GitStatus::DELETED)
+		{
+			files_delete << it.key();
+		}
+	}
+
+	//ask user if the changes should be committed
+	QStringList lines;
+	lines << "Do you  want to commit your changes to Git?";
+	lines << "";
+	if (files_add_commit.count()>0)
+	{
+		lines << "The following files will be added/committed:";
+		foreach(QString file, files_add_commit) lines << "  " + file.remove(notes_folder);
+		lines << "";
+	}
+	if (files_delete.count()>0)
+	{
+		lines << "The following files will be deleted:";
+		foreach(QString file, files_delete) lines << "  " + file.remove(notes_folder);
+		lines << "";
+	}
+	if (QMessageBox::question(this, "Git commit", lines.join("\n"))!=QMessageBox::Yes) return;
+
+	//commit and push
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		QString git_exe = Settings::string("git_exe", true);
+		foreach(QString file, files_add_commit)
+		{
+			execute(git_exe, QStringList() << "add" << file, notes_folder);
+		}
+		foreach(QString file, files_delete)
+		{
+			execute(git_exe, QStringList() << "rm" << file, notes_folder);
+		}
+		execute(git_exe, QStringList() << "commit" << "-m 'automated commit by Underverse'", notes_folder);
+		QByteArray push_result = execute(git_exe, QStringList() << "push", notes_folder);
+
+		QMessageBox::information(this, "Git push performed", push_result);
+
+		QApplication::restoreOverrideCursor();
+	}
+	catch (const Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error committing to git");
+	}
+
 }
 
 QString MainWindow::markdownToHtml(QString in)

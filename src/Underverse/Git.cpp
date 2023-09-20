@@ -5,6 +5,11 @@
 #include <QProcess>
 #include <QFileInfo>
 
+bool Git::isRepo(QString dir)
+{
+	return QFile::exists(dir + "/.git");
+}
+
 QHash<QString, GitStatus> Git::status(QString repo_base_dir)
 {
 	//check if git exe is set
@@ -55,6 +60,7 @@ QHash<QString, GitStatus> Git::status(QString repo_base_dir)
 		}
 
 		QString filename = repo_base_dir + "/" + line.mid(pos+1);
+		filename = filename.replace("//", "/"); //remove duplicated slashes
 		if (status_enum!=GitStatus::DELETED) filename = QFileInfo(filename).canonicalFilePath();
 		output[filename] = status_enum;
 	}

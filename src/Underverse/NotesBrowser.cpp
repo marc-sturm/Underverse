@@ -42,16 +42,17 @@ void NotesBrowser::updateView()
 
 	if (search_terms_.count()==0)
 	{
+		QHash<QString, GitStatus> status;
 		try
 		{
-			QHash<QString, GitStatus> status = Git::status(base_dir_);
-			addChildren(nullptr, base_dir_, status);
-			expandAll();
+			if (Git::isRepo(base_dir_)) status = Git::status(base_dir_);
 		}
 		catch (const Exception& e)
 		{
 			GUIHelper::showException(this, e, "Error in getting git status");
 		}
+		addChildren(nullptr, base_dir_, status);
+		expandAll();
 	}
 	else
 	{
