@@ -2,6 +2,5 @@ Underverse:
 
 optional:
 - commit git changes when closing the the application
-- delete files/folders
 - password support (embedded into .md file)
 

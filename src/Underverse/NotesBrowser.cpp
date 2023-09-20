@@ -42,9 +42,16 @@ void NotesBrowser::updateView()
 
 	if (search_terms_.count()==0)
 	{
-		QHash<QString, GitStatus> status = Git::status(base_dir_);
-		addChildren(nullptr, base_dir_, status);
-		expandAll();
+		try
+		{
+			QHash<QString, GitStatus> status = Git::status(base_dir_);
+			addChildren(nullptr, base_dir_, status);
+			expandAll();
+		}
+		catch (Exception& e)
+		{
+			GUIHelper::showException(this, "Error in Git status:\n" + e.message());
+		}
 	}
 	else
 	{
@@ -134,16 +141,25 @@ void NotesBrowser::onContextMenu(QPoint p)
 	{
 		path = itemAt(p)->data(0, Qt::UserRole).toString();
 	}
-	if (!QFileInfo(path).isDir()) return;
+
+	//set up menu
+	QMenu menu;
+	QFileInfo info(path);
+	if (info.isDir())
+	{
+		menu.addAction(icon_provier_.icon(QFileIconProvider::File), "New file");
+		menu.addAction(icon_provier_.icon(QFileIconProvider::Folder), "New folder");
+	}
+	else
+	{
+		menu.addAction(QIcon(":/Resources/remove.png"), "Delete file");
+	}
 
 	//execute menu
-	QMenu menu;
-	menu.addAction(icon_provier_.icon(QFileIconProvider::File), "New file");
-	menu.addAction(icon_provier_.icon(QFileIconProvider::Folder), "New folder");
 	QAction* action = menu.exec(mapToGlobal(p));
 	if (action==nullptr) return;
 
-	//actions
+	//perform action
 	if(action->text()=="New file")
 	{
 		QString name = QInputDialog::getText(this, "New file", "File:");
@@ -163,6 +179,11 @@ void NotesBrowser::onContextMenu(QPoint p)
 		if (!checkValidFileName(name)) return;
 
 		QDir(path).mkdir(name);
+		updateView();
+	}
+	else if(action->text()=="Delete file")
+	{
+		QFile::remove(item->data(0, Qt::UserRole).toString());
 		updateView();
 	}
 }

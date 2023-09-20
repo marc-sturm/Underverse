@@ -41,7 +41,7 @@ QHash<QString, GitStatus> Git::status(QString repo_base_dir)
 		{
 			status_enum = GitStatus::DELETED;
 		}
-		else if (status=="A")
+		else if (status=="A" || status=="AM")
 		{
 			status_enum = GitStatus::ADDED;
 		}
