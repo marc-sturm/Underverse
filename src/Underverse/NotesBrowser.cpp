@@ -48,9 +48,9 @@ void NotesBrowser::updateView()
 			addChildren(nullptr, base_dir_, status);
 			expandAll();
 		}
-		catch (Exception& e)
+		catch (const Exception& e)
 		{
-			GUIHelper::showException(this, "Error in Git status:\n" + e.message());
+			GUIHelper::showException(this, e, "Error in getting git status");
 		}
 	}
 	else
