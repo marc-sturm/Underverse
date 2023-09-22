@@ -125,6 +125,7 @@
     <addaction name="actionMarkdownHelp"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
+    <addaction name="actionOpenSettingsFiles"/>
     <addaction name="actionOpenNotesFolder"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
@@ -292,7 +293,7 @@
   </action>
   <action name="actionOpenNotesFolder">
    <property name="text">
-    <string>Open notes folder</string>
+    <string>Open notes folder in explorer</string>
    </property>
   </action>
   <action name="actionSearch">
@@ -323,6 +324,11 @@
    </property>
    <property name="text">
     <string>Debug</string>
+   </property>
+  </action>
+  <action name="actionOpenSettingsFiles">
+   <property name="text">
+    <string>Open settings files</string>
    </property>
   </action>
  </widget>

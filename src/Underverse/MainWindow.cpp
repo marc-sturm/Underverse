@@ -23,11 +23,11 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+	, delayed_init_timer_(this, true)
     , file_()
     , modified_(false)
 {
     ui->setupUi(this);
-	connect(qApp, SIGNAL(aboutToQuit()), this, SLOT(aboutToClose()));
 
     connect(ui->html, SIGNAL(anchorClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
     connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
@@ -125,7 +125,15 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::on_actionOpenNotesFolder_triggered()
 {
-    QDesktopServices::openUrl(QUrl(notesFolder()));
+	QDesktopServices::openUrl(QUrl(notesFolder()));
+}
+
+void MainWindow::on_actionOpenSettingsFiles_triggered()
+{
+	foreach(QString file, Settings::files())
+	{
+		QDesktopServices::openUrl("file:///" + file);
+	}
 }
 
 void MainWindow::on_actionMarkdownHelp_triggered()
@@ -218,6 +226,11 @@ void MainWindow::on_actionDebug_triggered()
 {
 }
 
+void MainWindow::delayedInitialization()
+{
+	askForGitPull();
+}
+
 void MainWindow::textChanged()
 {
     updateHTML();
@@ -298,10 +311,12 @@ void MainWindow::openExternalLink(QUrl url)
 	QMessageBox::warning(this, "Link error", "Could not open link to file: " + url_str);
 }
 
-void MainWindow::aboutToClose()
+void MainWindow::closeEvent(QCloseEvent* event)
 {
 	askWetherToStoreFile();
 	askForGitCommit();
+
+	event->accept();
 }
 
 void MainWindow::loadFile(QString filename)
@@ -584,7 +599,34 @@ void MainWindow::askForGitCommit()
 	{
 		GUIHelper::showException(this, e, "Error committing to git");
 	}
+}
 
+void MainWindow::askForGitPull()
+{
+	//pre-checks
+	if(!notes_mode_) return;
+	QString notes_folder = notesFolder();
+	if (!Git::isRepo(notes_folder)) return;
+
+	//ask user if he wants to pull
+	if(QMessageBox::question(this, "Git pull", "Do you want to perform git pull?")!=QMessageBox::Yes) return;
+
+	//commit and push
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		QString git_exe = Settings::string("git_exe", true);
+		QByteArray pull_result = execute(git_exe, QStringList() << "pull", notes_folder);
+
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::information(this, "Git pull performed", pull_result);
+	}
+	catch (const Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error committing to git");
+	}
 }
 
 QString MainWindow::markdownToHtml(QString in)

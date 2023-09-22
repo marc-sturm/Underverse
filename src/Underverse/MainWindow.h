@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "DelayedInitializationTimer.h"
 #include <QMainWindow>
 #include <QUrl>
 
@@ -45,6 +46,7 @@ public slots:
     void on_actionToggleEditing_triggered();
     void on_actionSettings_triggered();
     void on_actionOpenNotesFolder_triggered();
+	void on_actionOpenSettingsFiles_triggered();
     void on_actionMarkdownHelp_triggered();
     void on_actionAddImage_triggered();
     void on_actionAddLinkGlobal_triggered();
@@ -54,21 +56,26 @@ public slots:
     void on_actionOpenNotes_triggered();
 	void on_actionDebug_triggered();
 
+	void delayedInitialization();
     void loadFile(QString filename);
     void textChanged();
     void updateHTML();
     void updateToolBar();
     void openRecentFile();
     void openExternalLink(QUrl url);
-	void aboutToClose();
     void askWetherToStoreFile();
 	void askForGitCommit();
+	void askForGitPull();
 
 private:
     Ui::MainWindow *ui;
-    QString file_;
+	DelayedInitializationTimer delayed_init_timer_;
+	QString file_;
     bool modified_;
 	bool notes_mode_;
+
+
+	void closeEvent(QCloseEvent* event);
 };
 
 #endif // MAINWINDOW_H
