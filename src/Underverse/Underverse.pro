@@ -9,6 +9,7 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
     Git.cpp \
+    GitWorker.cpp \
     MainWindow.cpp \
     SettingsDialog.cpp \
     MarkDownHighlighter.cpp \
@@ -17,6 +18,7 @@ SOURCES += main.cpp \
     SearchBox.cpp
     
 HEADERS += Git.h \
+    GitWorker.h \
     MainWindow.h \
     SettingsDialog.h \
     MarkDownHighlighter.h \
@@ -48,4 +50,6 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
-    ToDos.txt
+    ../../todo.txt \
+    Resources/git_pull_highlight.png \
+    Resources/git_push_highlight.png

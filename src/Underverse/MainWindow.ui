@@ -115,7 +115,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
@@ -182,6 +182,9 @@
    <addaction name="actionAddImage"/>
    <addaction name="actionAddLinkMarkdown"/>
    <addaction name="actionAddLinkAttachment"/>
+   <addaction name="separator"/>
+   <addaction name="actionGitPull"/>
+   <addaction name="actionGitPush"/>
   </widget>
   <action name="actionAbout">
    <property name="text">
@@ -329,6 +332,24 @@
   <action name="actionOpenSettingsFiles">
    <property name="text">
     <string>Open settings files</string>
+   </property>
+  </action>
+  <action name="actionGitPull">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Resources/git_pull.png</normaloff>:/Resources/git_pull.png</iconset>
+   </property>
+   <property name="text">
+    <string>Git Pull</string>
+   </property>
+  </action>
+  <action name="actionGitPush">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/Resources/git_push.png</normaloff>:/Resources/git_push.png</iconset>
+   </property>
+   <property name="text">
+    <string>Git Push</string>
    </property>
   </action>
  </widget>

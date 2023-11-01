@@ -6,6 +6,8 @@
 #include <QInputDialog>
 #include <QScrollBar>
 #include <QProcess>
+#include <QToolButton>
+#include <QToolTip>
 
 #include "MainWindow.h"
 #include "Settings.h"
@@ -14,6 +16,7 @@
 #include "SettingsDialog.h"
 #include "GUIHelper.h"
 #include "MarkDownHighlighter.h"
+#include "GitWorker.h"
 
 #include <markdown.h>
 #include <html.h>
@@ -22,10 +25,10 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-	, delayed_init_timer_(this, true)
+	, ui(new Ui::MainWindow)
     , file_()
     , modified_(false)
+	, pool_()
 {
     ui->setupUi(this);
 
@@ -50,6 +53,10 @@ MainWindow::MainWindow(QWidget *parent)
     {
         loadFile(""); //init GUI
     }
+
+	pool_.setMaxThreadCount(1);
+	updateGitStatus(GitAction::PULL);
+	updateGitStatus(GitAction::PUSH);
 }
 
 MainWindow::~MainWindow()
@@ -99,6 +106,8 @@ void MainWindow::on_actionSave_triggered()
     Helper::storeTextFile(file_, text);
     modified_ = false;
     updateWindowTitle();
+
+	updateGitStatus(GitAction::PUSH);
 }
 
 void MainWindow::on_actionClose_triggered()
@@ -226,9 +235,101 @@ void MainWindow::on_actionDebug_triggered()
 {
 }
 
-void MainWindow::delayedInitialization()
+void MainWindow::on_actionGitPull_triggered()
 {
-	askForGitPull();
+	//pre-checks
+	if(!notes_mode_) return;
+	QString notes_folder = notesFolder();
+	if (!Git::isRepo(notes_folder)) return;
+
+	//commit and push
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		QString git_exe = Settings::string("git_exe", true);
+		QByteArray pull_result = execute(git_exe, QStringList() << "pull", notes_folder);
+
+		QApplication::restoreOverrideCursor();
+
+		updateGitStatus(GitAction::PULL);
+
+		QMessageBox::information(this, "Git pull performed", pull_result);
+
+	}
+	catch (const Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error committing to git");
+	}
+}
+
+void MainWindow::on_actionGitPush_triggered()
+{
+	//pre-checks
+	if(!notes_mode_) return;
+	QString notes_folder = notesFolder();
+	if (!Git::isRepo(notes_folder)) return;
+
+	//get Git status
+	QHash<QString, GitStatus> status;
+	try
+	{
+		status = Git::status(notes_folder);
+	}
+	catch (const Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error in getting git status");
+	}
+	if (status.isEmpty()) return;
+
+	//commit and push
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		QString git_exe = Settings::string("git_exe", true);
+		for (auto it=status.begin(); it!=status.end(); ++it)
+		{
+			GitStatus status_enum = it.value();
+
+			if (status_enum==GitStatus::MODIFIED || status_enum==GitStatus::ADDED || status_enum==GitStatus::NOT_VERSIONED)
+			{
+				execute(git_exe, QStringList() << "add" << it.key(), notes_folder);
+			}
+			if (status_enum==GitStatus::DELETED)
+			{
+				execute(git_exe, QStringList() << "rm" << it.key(), notes_folder);
+			}
+		}
+		execute(git_exe, QStringList() << "commit" << "-m 'automated commit by Underverse'", notes_folder);
+		QByteArray push_result = execute(git_exe, QStringList() << "push", notes_folder);
+
+		updateGitStatus(GitAction::PUSH);
+
+		QMessageBox::information(this, "Git push performed", push_result);
+
+		QApplication::restoreOverrideCursor();
+	}
+	catch (const Exception& e)
+	{
+		GUIHelper::showException(this, e, "Error committing to git");
+	}
+}
+
+void MainWindow::updateGitStatus(GitAction action)
+{
+	//check if there is something to pull
+	GitWorker* worker = new GitWorker(notesFolder(), action);
+	pool_.start(worker);
+	if (action==GitAction::PULL)
+	{
+		connect(worker, SIGNAL(actionPossible(bool)), this, SLOT(highlightPullButton(bool)));
+	}
+	else
+	{
+		connect(worker, SIGNAL(actionPossible(bool)), this, SLOT(highlightPushButton(bool)));
+	}
+	connect(worker, SIGNAL(error(QString)), this, SLOT(showGitError(QString)));
 }
 
 void MainWindow::textChanged()
@@ -314,7 +415,6 @@ void MainWindow::openExternalLink(QUrl url)
 void MainWindow::closeEvent(QCloseEvent* event)
 {
 	askWetherToStoreFile();
-	askForGitCommit();
 
 	event->accept();
 }
@@ -402,6 +502,9 @@ void MainWindow::updateToolBar()
 
 void MainWindow::addRecentFile(QString filename)
 {
+	//skip if on notes folder
+	if ((QFileInfo(filename).canonicalPath() + "/").startsWith(notesFolder())) return;
+
 	QStringList files = Settings::stringList("recent_files", true);
 
     files.prepend(filename.replace("\\", "/"));
@@ -515,118 +618,44 @@ void MainWindow::askWetherToStoreFile()
     box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     box.setDefaultButton(QMessageBox::No);
     if (box.exec() == QMessageBox::Yes)
-    {
-            on_actionSave_triggered();
+	{
+		on_actionSave_triggered();
 	}
 }
 
-void MainWindow::askForGitCommit()
+void MainWindow::highlightPullButton(bool data_available)
 {
-	//pre-checks
-	if(!notes_mode_) return;
-	QString notes_folder = notesFolder();
-	if (!Git::isRepo(notes_folder)) return;
-
-	//get Git status
-	QHash<QString, GitStatus> status;
-	try
+	QToolButton* button = qobject_cast<QToolButton*>(ui->toolbar->widgetForAction(ui->actionGitPull));
+	if (data_available)
 	{
-		status = Git::status(notes_folder);
+		button->setIcon(QIcon(":/Resources/git_pull_highlight.png"));
+		button->setToolTip("Upstream master contains data to pull");
 	}
-	catch (const Exception& e)
+	else
 	{
-		GUIHelper::showException(this, e, "Error in getting git status");
-	}
-	if (status.isEmpty()) return;
-
-	//determine files
-	QStringList files_add_commit;
-	QStringList files_delete;
-	for (auto it=status.begin(); it!=status.end(); ++it)
-	{
-		GitStatus status_enum = it.value();
-
-		if (status_enum==GitStatus::MODIFIED || status_enum==GitStatus::ADDED || status_enum==GitStatus::NOT_VERSIONED)
-		{
-			files_add_commit << it.key();
-		}
-		if (status_enum==GitStatus::DELETED)
-		{
-			files_delete << it.key();
-		}
-	}
-
-	//ask user if the changes should be committed
-	QStringList lines;
-	lines << "Do you  want to commit your changes to Git?";
-	lines << "";
-	if (files_add_commit.count()>0)
-	{
-		lines << "The following files will be added/committed:";
-		foreach(QString file, files_add_commit) lines << "  " + file.remove(notes_folder);
-		lines << "";
-	}
-	if (files_delete.count()>0)
-	{
-		lines << "The following files will be deleted:";
-		foreach(QString file, files_delete) lines << "  " + file.remove(notes_folder);
-		lines << "";
-	}
-	if (QMessageBox::question(this, "Git commit", lines.join("\n"))!=QMessageBox::Yes) return;
-
-	//commit and push
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		QString git_exe = Settings::string("git_exe", true);
-		foreach(QString file, files_add_commit)
-		{
-			execute(git_exe, QStringList() << "add" << file, notes_folder);
-		}
-		foreach(QString file, files_delete)
-		{
-			execute(git_exe, QStringList() << "rm" << file, notes_folder);
-		}
-		execute(git_exe, QStringList() << "commit" << "-m 'automated commit by Underverse'", notes_folder);
-		QByteArray push_result = execute(git_exe, QStringList() << "push", notes_folder);
-
-		QMessageBox::information(this, "Git push performed", push_result);
-
-		QApplication::restoreOverrideCursor();
-	}
-	catch (const Exception& e)
-	{
-		GUIHelper::showException(this, e, "Error committing to git");
+		button->setIcon(QIcon(":/Resources/git_pull.png"));
+		button->setToolTip("Git Pull");
 	}
 }
 
-void MainWindow::askForGitPull()
+void MainWindow::highlightPushButton(bool data_available)
 {
-	//pre-checks
-	if(!notes_mode_) return;
-	QString notes_folder = notesFolder();
-	if (!Git::isRepo(notes_folder)) return;
-
-	//ask user if he wants to pull
-	if(QMessageBox::question(this, "Git pull", "Do you want to perform git pull?")!=QMessageBox::Yes) return;
-
-	//commit and push
-	try
+	QToolButton* button = qobject_cast<QToolButton*>(ui->toolbar->widgetForAction(ui->actionGitPush));
+	if (data_available)
 	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		QString git_exe = Settings::string("git_exe", true);
-		QByteArray pull_result = execute(git_exe, QStringList() << "pull", notes_folder);
-
-		QApplication::restoreOverrideCursor();
-
-		QMessageBox::information(this, "Git pull performed", pull_result);
+		button->setIcon(QIcon(":/Resources/git_push_highlight.png"));
+		button->setToolTip("Local repository contains data to commit/push");
 	}
-	catch (const Exception& e)
+	else
 	{
-		GUIHelper::showException(this, e, "Error committing to git");
+		button->setIcon(QIcon(":/Resources/git_push.png"));
+		button->setToolTip("Git Commit/Push");
 	}
+}
+
+void MainWindow::showGitError(QString error_message)
+{
+	QMessageBox::warning(this, "Git error", "Error while performing GIT action:\n" + error_message);
 }
 
 QString MainWindow::markdownToHtml(QString in)

@@ -13,5 +13,9 @@
         <file>Resources/debug.png</file>
         <file>Resources/icon_blue.png</file>
         <file>Resources/icon_grey.png</file>
+        <file>Resources/git_pull.png</file>
+        <file>Resources/git_push.png</file>
+        <file>Resources/git_pull_highlight.png</file>
+        <file>Resources/git_push_highlight.png</file>
     </qresource>
 </RCC>

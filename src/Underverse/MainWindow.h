@@ -1,9 +1,10 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "DelayedInitializationTimer.h"
 #include <QMainWindow>
+#include <QThreadPool>
 #include <QUrl>
+#include "GitWorker.h"
 
 namespace Ui {
 class MainWindow;
@@ -55,24 +56,27 @@ public slots:
     void on_actionSearch_triggered();
     void on_actionOpenNotes_triggered();
 	void on_actionDebug_triggered();
+	void on_actionGitPull_triggered();
+	void on_actionGitPush_triggered();
 
-	void delayedInitialization();
+	void updateGitStatus(GitAction action);
     void loadFile(QString filename);
     void textChanged();
     void updateHTML();
     void updateToolBar();
     void openRecentFile();
     void openExternalLink(QUrl url);
-    void askWetherToStoreFile();
-	void askForGitCommit();
-	void askForGitPull();
+	void askWetherToStoreFile();
+	void highlightPullButton(bool data_available);
+	void highlightPushButton(bool data_available);
+	void showGitError(QString error_message);
 
 private:
-    Ui::MainWindow *ui;
-	DelayedInitializationTimer delayed_init_timer_;
+	Ui::MainWindow *ui;
 	QString file_;
     bool modified_;
 	bool notes_mode_;
+	QThreadPool pool_;
 
 
 	void closeEvent(QCloseEvent* event);
