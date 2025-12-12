@@ -4,7 +4,7 @@
 
 ## Current state
 
-Underverse is usable, but there is no stable binary release yet.  
+Underverse is usable, but there is no stable binary release.  
 *Use at your own risk!*
 
 ## Key features
@@ -28,10 +28,3 @@ Please use git to clone the most recent development version:
 
 Then, open the `src/Underverse.pro` file in QtCreator and build the application.  
 After a successfull build, the binary can be found in the `bin` folder.
-
-## Build notes
-
- - Qt 5.9.5
- - Download `qtwebkit-5.212.0_alpha2-qt59-mingw530-x86.zip` from <https://github.com/annulen/webkit/releases> and extract it to `C:\Qt\Qt5.9.5\5.9.5\mingw53_32`.
-
-

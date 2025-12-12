@@ -1,4 +1,5 @@
 #include "MarkDownHighlighter.h"
+#include <QRegularExpression>
 
 MarkDownHighlighter::MarkDownHighlighter(QTextDocument* parent)
 	: QSyntaxHighlighter(parent)
@@ -11,13 +12,12 @@ void MarkDownHighlighter::highlightBlock(const QString& text)
 	format.setFontWeight(QFont::Bold);
 	format.setForeground(Qt::darkMagenta);
 
-	QRegExp expression("^#.*$");
-	int index = text.indexOf(expression);
-	while (index >= 0)
+	QRegularExpression expression("^#.*$", QRegularExpression::MultilineOption);
+	auto it = expression.globalMatch(text);
+	while (it.hasNext())
 	{
-		int length = expression.matchedLength();
-		setFormat(index, length, format);
-		index = text.indexOf(expression, index + length);
+		auto match = it.next();
+		setFormat(match.capturedStart(), match.capturedLength(), format);
 	}
 }
 

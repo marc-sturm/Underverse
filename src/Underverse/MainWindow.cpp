@@ -8,16 +8,14 @@
 #include <QProcess>
 #include <QToolButton>
 #include <QToolTip>
-
+#include <QStandardPaths>
 #include "MainWindow.h"
 #include "Settings.h"
 #include "Helper.h"
 #include "Exceptions.h"
 #include "SettingsDialog.h"
 #include "GUIHelper.h"
-#include "MarkDownHighlighter.h"
 #include "GitWorker.h"
-
 #include <markdown.h>
 #include <html.h>
 #include <buffer.h>
@@ -574,7 +572,7 @@ void MainWindow::applySettings()
 
     //editor
     QFont font(Settings::string("font"), Settings::integer("font_size"));
-    ui->plain->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).width(' '));
+	ui->plain->setTabStopDistance(Settings::integer("tab_width") * QFontMetrics(font).horizontalAdvance(' '));
     ui->plain->setFont(font);
 }
 

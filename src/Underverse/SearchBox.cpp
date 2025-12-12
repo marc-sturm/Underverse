@@ -39,6 +39,6 @@ void SearchBox::clearText()
 
 void SearchBox::onTextChanged()
 {
-	terms_ = ui->edit->text().split(' ', QString::SkipEmptyParts);
+	terms_ = ui->edit->text().split(' ', Qt::SkipEmptyParts);
 	emit textEdited(terms_);
 }
