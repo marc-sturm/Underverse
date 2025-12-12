@@ -74,7 +74,7 @@ void NotesBrowser::performSearch()
 		QString content = Helper::fileText(file);
 		foreach(QString term, search_terms_)
 		{
-			score += 100 * file.mid(base_dir_.count()).count(term, Qt::CaseInsensitive);
+			score += 100 * file.mid(base_dir_.size()).count(term, Qt::CaseInsensitive);
 			score += 1 * content.count(term, Qt::CaseInsensitive);
 		}
 
