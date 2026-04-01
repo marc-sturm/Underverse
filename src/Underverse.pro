@@ -4,8 +4,7 @@ CONFIG += console
 #Library targets and depdendencies
 SUBDIRS = cppCORE \
         cppGUI \
-        sundown \
         Underverse
 
 cppGUI.depends = cppCORE
-Underverse.depends = cppCORE cppGUI sundown
+Underverse.depends = cppCORE cppGUI

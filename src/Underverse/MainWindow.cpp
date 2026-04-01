@@ -1,5 +1,4 @@
 #include "ui_MainWindow.h"
-
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDesktopServices>
@@ -16,10 +15,6 @@
 #include "SettingsDialog.h"
 #include "GUIHelper.h"
 #include "GitWorker.h"
-#include <markdown.h>
-#include <html.h>
-#include <buffer.h>
-
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -656,38 +651,73 @@ void MainWindow::showGitError(QString error_message)
 	QMessageBox::warning(this, "Git error", "Error while performing GIT action:\n" + error_message);
 }
 
+struct ElementPos {
+	QString tag;
+	qsizetype start;
+	qsizetype end;
+};
+QList<ElementPos> findHtmlElements(QString html, QStringList tags)
+{
+	QList<ElementPos> result;
+	for (const QString& tag : tags)
+	{
+		int pos = 0;
+		while (pos < html.size()) {
+			int startTag = html.indexOf("<" + tag, pos, Qt::CaseInsensitive);
+			if (startTag == -1)
+				break;
+
+			int endStartTag = html.indexOf(">", startTag);
+			if (endStartTag == -1)
+				break;
+
+			int endTag = html.indexOf("</" + tag + ">", endStartTag, Qt::CaseInsensitive);
+			if (endTag == -1)
+				break;
+
+			result.append({tag, startTag, endTag + tag.length() + 3});
+			// +3 for "</" and ">"
+			pos = endTag + tag.length() + 3;
+		}
+	}
+	return result;
+}
+
 QString MainWindow::markdownToHtml(QString in)
 {
     if(in.size()==0) return "";
 
-    struct buf *ib, *ob;
-    struct sd_callbacks cbs;
-    struct html_renderopt opts;
-    struct sd_markdown *mkd;
+	//convert to HTML
+	QTextDocument doc;
+	doc.setMarkdown(in);
+	QString html = doc.toHtml();
 
-    QByteArray qba = in.toUtf8();
-    const char* txt = qba.constData();
-    ib = bufnew(qba.size());
-    bufputs(ib,txt);
-    ob = bufnew(64);
-    sdhtml_renderer(&cbs,&opts,0);
-    mkd = sd_markdown_new(0,16,&cbs,&opts);
-    sd_markdown_render(ob,ib->data,ib->size,mkd);
-    sd_markdown_free(mkd);
+	//style html
+	QList<ElementPos> elements = findHtmlElements(html, QStringList{"h1", "h2", "h3"});
+	for (int i=elements.count()-1; i>=0; --i) //reverse order to make the positions correct
+	{
+		const ElementPos& e = elements[i];
+		QString text = html.mid(e.start, e.end - e.start);
+		if (e.tag=="h1")
+		{
+			text = text.replace("margin-top:0px;", "margin-top:20px;");
+			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
+		}
+		else if (e.tag=="h2")
+		{
+			text = text.replace("margin-top:0px;", "margin-top:10px;");
+			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
+		}
+		else if (e.tag=="h3")
+		{
+			text = text.replace("margin-top:0px;", "margin-top:10px;");
+			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
+		}
 
-    //header
-    QString output = "<html>\n";
-    output += "<head>\n";
-    output += "  <meta charset=\"utf-8\">\n";
-    output += "</head>\n";
+		html.replace(e.start, e.end-e.start, text);
+	}
 
-    //boby
-    output += "<body>\n";
-    output += QString::fromUtf8(bufcstr(ob));
-    output += "</body>\n";
-    output += "</html>";
-
-    return output;
+	return html;
 }
 
 QString MainWindow::notesFolder()

@@ -38,10 +38,6 @@ LIBS += -L$$PWD/../../bin -lcppCORE
 INCLUDEPATH += $$PWD/../../src/cppGUI
 LIBS += -L$$PWD/../../bin -lcppGUI
 
-#include sundown library
-INCLUDEPATH += $$PWD/../../src/sundown/src/ $$PWD/../../src/sundown/html/
-LIBS += -L$$PWD/../../bin -lsundown
-
 #copy EXE to bin folder
 DESTDIR = $$PWD/../../bin
 
