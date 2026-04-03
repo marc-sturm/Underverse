@@ -431,8 +431,8 @@ void MainWindow::loadFile(QString filename)
     else
     {
         ui->plain->setPlainText(Helper::fileText(file_));
-        ui->plain->setEnabled(true);
-        addRecentFile(file_);
+		ui->plain->setEnabled(true);
+		addRecentFile(file_);
     }
 
     modified_ = false;
@@ -693,7 +693,7 @@ QString MainWindow::markdownToHtml(QString in)
 	QString html = doc.toHtml();
 
 	//style html
-	QList<ElementPos> elements = findHtmlElements(html, QStringList{"h1", "h2", "h3"});
+	QList<ElementPos> elements = findHtmlElements(html, QStringList{"h1", "h2", "h3", "td"});
 	for (int i=elements.count()-1; i>=0; --i) //reverse order to make the positions correct
 	{
 		const ElementPos& e = elements[i];
@@ -705,7 +705,7 @@ QString MainWindow::markdownToHtml(QString in)
 		}
 		else if (e.tag=="h2")
 		{
-			text = text.replace("margin-top:0px;", "margin-top:10px;");
+			text = text.replace("margin-top:0px;", "text-decoration:underline; margin-top:10px;");
 			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
 		}
 		else if (e.tag=="h3")
@@ -713,10 +713,13 @@ QString MainWindow::markdownToHtml(QString in)
 			text = text.replace("margin-top:0px;", "margin-top:10px;");
 			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
 		}
-
+		else if (e.tag=="td")
+		{
+			text = text.replace("<td>", "<td style=\"border: 1px solid #aaa;\">");
+		}
 		html.replace(e.start, e.end-e.start, text);
 	}
-
+	//Helper::storeTextFile("C:\\Users\\sturm\\Desktop\\test.html", QStringList() << html);
 	return html;
 }
 

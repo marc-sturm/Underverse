@@ -1,5 +1,5 @@
 #c++11 support
-CONFIG += c++11
+CONFIG += c++17
 
 QT += core widgets gui network
 
@@ -45,6 +45,4 @@ RESOURCES += \
     resources.qrc
 
 DISTFILES += \
-    ../../todo.txt \
-    Resources/git_pull_highlight.png \
-    Resources/git_push_highlight.png
+    ../../todo.txt

@@ -36,8 +36,14 @@
     </property>
     <item>
      <widget class="QSplitter" name="splitter">
+      <property name="frameShape">
+       <enum>QFrame::Shape::NoFrame</enum>
+      </property>
+      <property name="midLineWidth">
+       <number>0</number>
+      </property>
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="browser_layout">
@@ -59,14 +65,14 @@
         <item>
          <widget class="SearchBox" name="search" native="true">
           <property name="focusPolicy">
-           <enum>Qt::StrongFocus</enum>
+           <enum>Qt::FocusPolicy::StrongFocus</enum>
           </property>
          </widget>
         </item>
         <item>
          <widget class="NotesBrowser" name="browser">
           <property name="focusPolicy">
-           <enum>Qt::StrongFocus</enum>
+           <enum>Qt::FocusPolicy::StrongFocus</enum>
           </property>
           <column>
            <property name="text">
@@ -85,18 +91,18 @@
         </font>
        </property>
        <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+        <enum>QFrame::Shape::StyledPanel</enum>
        </property>
       </widget>
       <widget class="QTextBrowser" name="html">
        <property name="focusPolicy">
-        <enum>Qt::StrongFocus</enum>
+        <enum>Qt::FocusPolicy::StrongFocus</enum>
        </property>
        <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+        <enum>QFrame::Shape::StyledPanel</enum>
        </property>
        <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
+        <enum>QFrame::Shadow::Plain</enum>
        </property>
        <property name="openExternalLinks">
         <bool>false</bool>
@@ -115,7 +121,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
