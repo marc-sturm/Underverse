@@ -1,11 +1,11 @@
 #include "Editor.h"
 
 #include <QDebug>
+#include <QTextBlock>
 
 Editor::Editor(QWidget* parent)
 	: QPlainTextEdit(parent)
 {
-	highlighter_ = new MarkDownHighlighter(document());
 }
 
 void Editor::keyPressEvent(QKeyEvent* e)

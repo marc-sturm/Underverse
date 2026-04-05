@@ -2,7 +2,6 @@
 #define EDITOR_H
 
 #include <QPlainTextEdit>
-#include "MarkDownHighlighter.h"
 
 class Editor
 	: public QPlainTextEdit
@@ -15,8 +14,6 @@ public:
 protected:
 	void keyPressEvent(QKeyEvent* e) override;
 	void changeSelectionIndentation(bool increase);
-
-	MarkDownHighlighter* highlighter_;
 };
 
 #endif // EDITOR_H

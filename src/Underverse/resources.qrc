@@ -5,17 +5,8 @@
         <file>Resources/settings.png</file>
         <file>Resources/view.png</file>
         <file>Resources/write.png</file>
-        <file>Resources/image.png</file>
-        <file>Resources/link_attachment.png</file>
-        <file>Resources/link_global.png</file>
-        <file>Resources/link_markdown.png</file>
         <file>Resources/remove.png</file>
-        <file>Resources/debug.png</file>
         <file>Resources/icon_blue.png</file>
         <file>Resources/icon_grey.png</file>
-        <file>Resources/git_pull.png</file>
-        <file>Resources/git_push.png</file>
-        <file>Resources/git_pull_highlight.png</file>
-        <file>Resources/git_push_highlight.png</file>
     </qresource>
 </RCC>

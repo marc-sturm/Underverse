@@ -8,31 +8,23 @@
 #include <QToolButton>
 #include <QToolTip>
 #include <QStandardPaths>
+#include <QTextBrowser>
 #include "MainWindow.h"
 #include "Settings.h"
 #include "Helper.h"
 #include "Exceptions.h"
-#include "SettingsDialog.h"
 #include "GUIHelper.h"
-#include "GitWorker.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 	, ui(new Ui::MainWindow)
-    , file_()
-    , modified_(false)
-	, pool_()
 {
     ui->setupUi(this);
 
-    connect(ui->html, SIGNAL(anchorClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
-    connect(ui->plain, SIGNAL(textChanged()), this, SLOT(textChanged()));
-
-    connect(ui->search, SIGNAL(textEdited(QStringList)), ui->browser, SLOT(setSearchTerms(QStringList)));
-    connect(ui->search, SIGNAL(textEdited(QStringList)), this, SLOT(updateHTML()));
+	connect(ui->search, SIGNAL(textEdited(QStringList)), ui->browser, SLOT(setSearchTerms(QStringList)));
+	connect(ui->search, SIGNAL(textEdited(QStringList)), ui->editor, SLOT(setHighlightStrings(QStringList)));
     connect(ui->browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
-
-    connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(updateToolBar()));
+	connect(ui->editor, SIGNAL(modificationStateChanged()), this, SLOT(updateWindowTitle()));
 
 	initSettings();
 	applySettings();
@@ -46,10 +38,6 @@ MainWindow::MainWindow(QWidget *parent)
     {
         loadFile(""); //init GUI
     }
-
-	pool_.setMaxThreadCount(1);
-	updateGitStatus(GitAction::PULL);
-	updateGitStatus(GitAction::PUSH);
 }
 
 MainWindow::~MainWindow()
@@ -65,7 +53,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
 void MainWindow::on_actionAbout_triggered()
 {
-    QMessageBox::about(this, "About " + QApplication::applicationName(),  "<p>" + QApplication::applicationName() + " " + QApplication::applicationVersion() +"<p>It is provided under the <a href=\"http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html\">GNU General Public License (GPL) Version 2.0</a>.<p>This program is provided as is with no warranty of any kind, including the warranty of design, merchantability and fitness for a particular purpose.");
+	QMessageBox::about(this, "About " + QApplication::applicationName(),  "<p>" + QApplication::applicationName() + " " + QApplication::applicationVersion() +"<p>A free markdown editor under MIT license.");
 }
 
 void MainWindow::on_actionNew_triggered()
@@ -89,18 +77,7 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSave_triggered()
 {
-    if (file_=="" || !modified_) return;
-
-    QStringList text = ui->plain->toPlainText().split("\n");
-    while(text.last().trimmed().isEmpty())
-    {
-        text.removeLast();
-    }
-    Helper::storeTextFile(file_, text);
-    modified_ = false;
-    updateWindowTitle();
-
-	updateGitStatus(GitAction::PUSH);
+	ui->editor->storeFile();
 }
 
 void MainWindow::on_actionClose_triggered()
@@ -110,24 +87,13 @@ void MainWindow::on_actionClose_triggered()
 
 void MainWindow::on_actionToggleEditing_triggered()
 {
-    ui->plain->setVisible(!ui->plain->isVisible());
+	ui->editor->toggleEditArea();
     updateWidths();
-}
-
-void MainWindow::on_actionSettings_triggered()
-{
-    SettingsDialog dlg(this);
-    if (dlg.exec()==QDialog::Accepted)
-    {
-        applySettings();
-        //update HTML in case style changed
-        updateHTML();
-    }
 }
 
 void MainWindow::on_actionOpenNotesFolder_triggered()
 {
-	QDesktopServices::openUrl(QUrl(notesFolder()));
+	QDesktopServices::openUrl(QUrl(ui->editor->baseFolder()));
 }
 
 void MainWindow::on_actionOpenSettingsFiles_triggered()
@@ -140,70 +106,11 @@ void MainWindow::on_actionOpenSettingsFiles_triggered()
 
 void MainWindow::on_actionMarkdownHelp_triggered()
 {
-    QTextBrowser* view = new QTextBrowser();
-    view->setOpenExternalLinks(false);
-    connect(view, SIGNAL(anchorClicked(QUrl)), this, SLOT(openExternalLink(QUrl)));
-    view->setHtml(markdownToHtml(Helper::fileText(":/Resources/MarkdownHelp.md")));
-    auto dlg = GUIHelper::createDialog(view, "Markdown help", "", false);
-	dlg->setMinimumSize(800, 600);
-    dlg->exec();
-}
-
-void MainWindow::on_actionAddImage_triggered()
-{
-    //get image file name
-    QString image = QFileDialog::getOpenFileName(this, "Select image file", notesFolder(), "Image (*.jpg *.png *.gif *.tiff);;All files (*.*)");
-	if (image=="") return;
-
-    //copy image to 'images' folder of markdown file
-    QDir(fileFolder()).mkdir("images");
-    QString image_name = QFileInfo(image).fileName();
-    QFile::copy(image, fileFolder() + "/images/" + image_name);
-
-    //insert text
-    ui->plain->textCursor().insertText("![" + image_name + "](images/" + image_name + ")");
-}
-
-void MainWindow::on_actionAddLinkGlobal_triggered()
-{
-	QString url = QInputDialog::getText(this, "Enter link URL", "URL:");
-    if (url=="") return;
-
-    QString text = QInputDialog::getText(this, "Enter link text", "Text:", QLineEdit::Normal, url);
-    if (text=="") return;
-
-    //insert text
-    ui->plain->textCursor().insertText("[" + text + "](" + url + ")");
-}
-
-void MainWindow::on_actionAddLinkMarkdown_triggered()
-{
-    //select notes page
-    NotesBrowser* browser = new NotesBrowser();
-	browser->setMinimumSize(800, 600);
-    browser->setBaseDirectory(notesFolder());
-    auto dlg = GUIHelper::createDialog(browser, "Select page", "", true);
-    if (dlg->exec()==QDialog::Rejected) return;
-
-    //insert text
-    QString file = browser->selectedFile();
-    file = file.replace(notesFolder(), "");
-    ui->plain->textCursor().insertText("[" + QFileInfo(file).fileName().replace(".md", "") + "](" + file + ")");
-}
-
-void MainWindow::on_actionAddLinkAttachment_triggered()
-{
-    //get attachment file name
-    QString attachment = QFileDialog::getOpenFileName(this, "Select attachment file", notesFolder());
-    if (attachment=="") return;
-
-    //copy attachment to 'attachments' folder of markdown file
-    QDir(fileFolder()).mkdir("attachments");
-    QString attachment_name = QFileInfo(attachment).fileName();
-    QFile::copy(attachment, fileFolder() + "/attachments/" + attachment_name);
-
-    //insert text
-    ui->plain->textCursor().insertText("[" + attachment_name + "](attachments/" + attachment_name + ")");
+	MarkdownEditor* editor = new MarkdownEditor();
+	editor->loadFile(":/Resources/MarkdownHelp.md");
+	editor->toggleEditingEnabled();
+	auto dlg = GUIHelper::createDialog(editor, "Markdown help", "", false);
+	dlg->exec();
 }
 
 void MainWindow::on_actionSearch_triggered()
@@ -219,151 +126,6 @@ void MainWindow::on_actionSearch_triggered()
     }
 }
 
-void MainWindow::on_actionOpenNotes_triggered()
-{
-	loadFile("");
-}
-
-void MainWindow::on_actionDebug_triggered()
-{
-}
-
-void MainWindow::on_actionGitPull_triggered()
-{
-	//pre-checks
-	if(!notes_mode_) return;
-	QString notes_folder = notesFolder();
-	if (!Git::isRepo(notes_folder)) return;
-
-	//commit and push
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		QString git_exe = Settings::string("git_exe", true);
-		QByteArray pull_result = execute(git_exe, QStringList() << "pull", notes_folder);
-
-		QApplication::restoreOverrideCursor();
-
-		updateGitStatus(GitAction::PULL);
-
-		QMessageBox::information(this, "Git pull performed", pull_result);
-
-	}
-	catch (const Exception& e)
-	{
-		GUIHelper::showException(this, e, "Error committing to git");
-	}
-}
-
-void MainWindow::on_actionGitPush_triggered()
-{
-	//pre-checks
-	if(!notes_mode_) return;
-	QString notes_folder = notesFolder();
-	if (!Git::isRepo(notes_folder)) return;
-
-	//get Git status
-	QHash<QString, GitStatus> status;
-	try
-	{
-		status = Git::status(notes_folder);
-	}
-	catch (const Exception& e)
-	{
-		GUIHelper::showException(this, e, "Error in getting git status");
-	}
-	if (status.isEmpty()) return;
-
-	//commit and push
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		QString git_exe = Settings::string("git_exe", true);
-		for (auto it=status.begin(); it!=status.end(); ++it)
-		{
-			GitStatus status_enum = it.value();
-
-			if (status_enum==GitStatus::MODIFIED || status_enum==GitStatus::ADDED || status_enum==GitStatus::NOT_VERSIONED)
-			{
-				execute(git_exe, QStringList() << "add" << it.key(), notes_folder);
-			}
-			if (status_enum==GitStatus::DELETED)
-			{
-				execute(git_exe, QStringList() << "rm" << it.key(), notes_folder);
-			}
-		}
-		execute(git_exe, QStringList() << "commit" << "-m 'automated commit by Underverse'", notes_folder);
-		QByteArray push_result = execute(git_exe, QStringList() << "push", notes_folder);
-
-		updateGitStatus(GitAction::PUSH);
-
-		QMessageBox::information(this, "Git push performed", push_result);
-
-		QApplication::restoreOverrideCursor();
-	}
-	catch (const Exception& e)
-	{
-		GUIHelper::showException(this, e, "Error committing to git");
-	}
-}
-
-void MainWindow::updateGitStatus(GitAction action)
-{
-	//check if there is something to pull
-	GitWorker* worker = new GitWorker(notesFolder(), action);
-	pool_.start(worker);
-	if (action==GitAction::PULL)
-	{
-		connect(worker, SIGNAL(actionPossible(bool)), this, SLOT(highlightPullButton(bool)));
-	}
-	else
-	{
-		connect(worker, SIGNAL(actionPossible(bool)), this, SLOT(highlightPushButton(bool)));
-	}
-	connect(worker, SIGNAL(error(QString)), this, SLOT(showGitError(QString)));
-}
-
-void MainWindow::textChanged()
-{
-    updateHTML();
-
-    //update window title
-    modified_ = true;
-    updateWindowTitle();
-}
-
-void MainWindow::updateHTML()
-{
-    QString text = markdownToHtml(ui->plain->toPlainText());
-
-    //highlight search terms
-    const QString start_tag = "<span style=\"background-color: yellow;\">";
-    const QString end_tag = "</span>";
-    int index = -1;
-    foreach(const QString& term, ui->search->terms())
-    {
-        int from_index = 0;
-        while((index = text.indexOf(term, from_index, Qt::CaseInsensitive))!=-1)
-        {
-            text.insert(index, start_tag);
-            text.insert(index+start_tag.length()+term.length(), end_tag);
-            from_index =index+start_tag.length()+term.length()+end_tag.length();
-        }
-    }
-
-    //store scrollbar position
-    int scroll_pos = ui->html->verticalScrollBar()->value();
-
-    //update
-    ui->html->setSearchPaths(QStringList() << fileFolder());
-    ui->html->setHtml(text);
-
-    //restore scrollbar position
-    ui->html->verticalScrollBar()->setValue(scroll_pos);
-}
-
 void MainWindow::openRecentFile()
 {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -377,126 +139,66 @@ void MainWindow::openRecentFile()
     loadFile(filename);
 }
 
-void MainWindow::openExternalLink(QUrl url)
-{
-    QString url_str = url.toString().trimmed();
-
-    //web link
-    if (url_str.startsWith("http://") || url_str.startsWith("https://"))
-    {
-        QDesktopServices::openUrl(url);
-        return;
-    }
-
-    //link relative to notes folder
-    if (fileIsInNotesFolder() && QFile::exists(notesFolder() + url_str))
-    {
-        loadFile(notesFolder() + url_str);
-        return;
-    }
-
-    //link relative to current file
-    if (QFile::exists(fileFolder() + url_str))
-    {
-        loadFile(fileFolder() + url_str);
-        return;
-    }
-
-	QMessageBox::warning(this, "Link error", "Could not open link to file: " + url_str);
-}
-
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-	askWetherToStoreFile();
-
+	ui->editor->clear();
 	event->accept();
 }
 
 void MainWindow::loadFile(QString filename)
 {
-    askWetherToStoreFile();
-
+	filename = filename.trimmed();
     if (filename!="" && !QFile::exists(filename))
     {
         QMessageBox::warning(this, "File missing", "File ' " + filename + "' does not exist!");
         filename = "";
     }
 
-    file_ = filename;
-    if (file_=="")
-    {
-        ui->plain->setPlainText("");
-        ui->plain->setEnabled(false);
+	if (filename=="")
+	{
+		ui->editor->clear();
     }
     else
-    {
-        ui->plain->setPlainText(Helper::fileText(file_));
-		ui->plain->setEnabled(true);
-		addRecentFile(file_);
+	{
+		ui->editor->loadFile(filename);
+		addRecentFile(ui->editor->file());
     }
 
-    modified_ = false;
-    updateWindowTitle();
-    updateToolBar();
-
-    //update browser
-	if (file_=="" || fileIsInNotesFolder())
-    {
-        ui->browser->show();
-        ui->search->show();
+	//update browser
+	if (filename.isEmpty() || ui->editor->file().startsWith(ui->editor->baseFolder()))
+	{
+		ui->browser->show();
+		ui->search->show();
 		notes_mode_ = true;
 
-		if (file_!="")
+		if (!filename.isEmpty())
 		{
-			ui->browser->setSelectedFile(file_);
+			ui->browser->setSelectedFile(filename);
 		}
     }
     else
-    {
-        ui->browser->hide();
-        ui->search->hide();
+	{
+		ui->browser->hide();
+		ui->search->hide();
 		notes_mode_ = false;
 	}
-
-    //apply mode from settings
-    QString mode = Settings::string("mode");
-    if (mode=="View")
-    {
-        ui->plain->setVisible(false);
-    }
-    else if (mode=="Edit")
-    {
-        ui->plain->setVisible(true);
-    }
-    updateWidths();
+	updateWidths();
 }
 
 void MainWindow::updateWindowTitle()
 {
     QString title = qApp->applicationName();
-    if (file_!="")
+	if (!ui->editor->file().isEmpty())
     {
-        title += " - " + file_ + (modified_ ? "*" : "");
+		title += " - " + ui->editor->file() + (ui->editor->isModified() ? "*" : "");
     }
     setWindowTitle(title);
-}
-
-void MainWindow::updateToolBar()
-{
-    bool has_focus = ui->plain->hasFocus();
-    bool file_open = (file_!="");
-    bool in_notes = fileIsInNotesFolder();
-
-    ui->actionAddLinkGlobal->setEnabled(has_focus && file_open);
-    ui->actionAddImage->setEnabled(has_focus && file_open && in_notes);
-    ui->actionAddLinkMarkdown->setEnabled(has_focus && file_open && in_notes);
-    ui->actionAddLinkAttachment->setEnabled(has_focus && file_open && in_notes);
 }
 
 void MainWindow::addRecentFile(QString filename)
 {
 	//skip if on notes folder
-	if ((QFileInfo(filename).canonicalPath() + "/").startsWith(notesFolder())) return;
+	if ((QFileInfo(filename).canonicalPath() + "/").startsWith(ui->editor->baseFolder())) return;
 
 	QStringList files = Settings::stringList("recent_files", true);
 
@@ -541,15 +243,7 @@ void MainWindow::initSettings()
 		data_folder = qApp->applicationDirPath() + "/data/";
 		QDir(data_folder).mkpath(".");
 	}
-    Settings::setString("data_folder", data_folder);
-	Settings::setString("mode", Settings::contains("mode") ? Settings::string("mode") : "Edit");
-
-	QString git_exe = Settings::string("git_exe", true);
-	if (git_exe=="")
-	{
-		git_exe = QStandardPaths::findExecutable("git");
-	}
-	Settings::setString("git_exe", git_exe);
+	Settings::setString("data_folder", data_folder);
 
 	//editor
     Settings::setString("font", Settings::contains("font") ? Settings::string("font") : "Courier New");
@@ -563,12 +257,14 @@ void MainWindow::initSettings()
 void MainWindow::applySettings()
 {
     //general
-    ui->browser->setBaseDirectory(notesFolder());
+	QString data_folder = Settings::string("data_folder");
+	ui->browser->setBaseDirectory(data_folder);
+	ui->editor->setBaseFolder(data_folder);
 
     //editor
     QFont font(Settings::string("font"), Settings::integer("font_size"));
-	ui->plain->setTabStopDistance(Settings::integer("tab_width") * QFontMetrics(font).horizontalAdvance(' '));
-    ui->plain->setFont(font);
+	ui->editor->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).horizontalAdvance(' '));
+	ui->editor->setFont(font);
 }
 
 void MainWindow::updateRecentFilesMenu()
@@ -584,156 +280,6 @@ void MainWindow::updateRecentFilesMenu()
 
 void MainWindow::updateWidths()
 {
-    QList<int> widths;
-
-    int browser_with = ui->browser->isVisible() ? 250 : 0;
-    widths << browser_with;
-
-    int w = width() - browser_with;
-    if (ui->plain->isVisible())
-    {
-        widths << w/2 << w/2;
-    }
-    else
-    {
-        widths << 0 << w;
-    }
-    ui->splitter->setSizes(widths);
-}
-
-void MainWindow::askWetherToStoreFile()
-{
-    if (file_=="" || !modified_) return;
-
-    QMessageBox box(this);
-    box.setWindowTitle(QApplication::applicationName());
-    box.setText("Save changes to '" + file_ + "'?");
-    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    box.setDefaultButton(QMessageBox::No);
-    if (box.exec() == QMessageBox::Yes)
-	{
-		on_actionSave_triggered();
-	}
-}
-
-void MainWindow::highlightPullButton(bool data_available)
-{
-	QToolButton* button = qobject_cast<QToolButton*>(ui->toolbar->widgetForAction(ui->actionGitPull));
-	if (data_available)
-	{
-		button->setIcon(QIcon(":/Resources/git_pull_highlight.png"));
-		button->setToolTip("Upstream master contains data to pull");
-	}
-	else
-	{
-		button->setIcon(QIcon(":/Resources/git_pull.png"));
-		button->setToolTip("Git Pull");
-	}
-}
-
-void MainWindow::highlightPushButton(bool data_available)
-{
-	QToolButton* button = qobject_cast<QToolButton*>(ui->toolbar->widgetForAction(ui->actionGitPush));
-	if (data_available)
-	{
-		button->setIcon(QIcon(":/Resources/git_push_highlight.png"));
-		button->setToolTip("Local repository contains data to commit/push");
-	}
-	else
-	{
-		button->setIcon(QIcon(":/Resources/git_push.png"));
-		button->setToolTip("Git Commit/Push");
-	}
-}
-
-void MainWindow::showGitError(QString error_message)
-{
-	QMessageBox::warning(this, "Git error", "Error while performing GIT action:\n" + error_message);
-}
-
-struct ElementPos {
-	QString tag;
-	qsizetype start;
-	qsizetype end;
-};
-QList<ElementPos> findHtmlElements(QString html, QStringList tags)
-{
-	QList<ElementPos> result;
-	for (const QString& tag : tags)
-	{
-		int pos = 0;
-		while (pos < html.size()) {
-			int startTag = html.indexOf("<" + tag, pos, Qt::CaseInsensitive);
-			if (startTag == -1)
-				break;
-
-			int endStartTag = html.indexOf(">", startTag);
-			if (endStartTag == -1)
-				break;
-
-			int endTag = html.indexOf("</" + tag + ">", endStartTag, Qt::CaseInsensitive);
-			if (endTag == -1)
-				break;
-
-			result.append({tag, startTag, endTag + tag.length() + 3});
-			// +3 for "</" and ">"
-			pos = endTag + tag.length() + 3;
-		}
-	}
-	return result;
-}
-
-QString MainWindow::markdownToHtml(QString in)
-{
-    if(in.size()==0) return "";
-
-	//convert to HTML
-	QTextDocument doc;
-	doc.setMarkdown(in);
-	QString html = doc.toHtml();
-
-	//style html
-	QList<ElementPos> elements = findHtmlElements(html, QStringList{"h1", "h2", "h3", "td"});
-	for (int i=elements.count()-1; i>=0; --i) //reverse order to make the positions correct
-	{
-		const ElementPos& e = elements[i];
-		QString text = html.mid(e.start, e.end - e.start);
-		if (e.tag=="h1")
-		{
-			text = text.replace("margin-top:0px;", "margin-top:20px;");
-			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
-		}
-		else if (e.tag=="h2")
-		{
-			text = text.replace("margin-top:0px;", "text-decoration:underline; margin-top:10px;");
-			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
-		}
-		else if (e.tag=="h3")
-		{
-			text = text.replace("margin-top:0px;", "margin-top:10px;");
-			text = text.replace("margin-bottom:0px;", "margin-bottom:5px;");
-		}
-		else if (e.tag=="td")
-		{
-			text = text.replace("<td>", "<td style=\"border: 1px solid #aaa;\">");
-		}
-		html.replace(e.start, e.end-e.start, text);
-	}
-	//Helper::storeTextFile("C:\\Users\\sturm\\Desktop\\test.html", QStringList() << html);
-	return html;
-}
-
-QString MainWindow::notesFolder()
-{
-    return QFileInfo(Settings::string("data_folder")).canonicalFilePath() + "/";
-}
-
-bool MainWindow::fileIsInNotesFolder()
-{
-    return fileFolder().startsWith(notesFolder());
-}
-
-QString MainWindow::fileFolder()
-{
-    return QFileInfo(file_).canonicalPath() + "/";
+	int browser_width = ui->browser->isVisible() ? 250 : 0;
+	ui->splitter->setSizes(QList<int>() << browser_width << (width()-browser_width));
 }

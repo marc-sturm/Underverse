@@ -8,26 +8,19 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
-    GitWorker.cpp \
     MainWindow.cpp \
-    SettingsDialog.cpp \
-    MarkDownHighlighter.cpp \
     Editor.cpp \
     NotesBrowser.cpp \
     SearchBox.cpp
     
 HEADERS += \
-    GitWorker.h \
     MainWindow.h \
-    SettingsDialog.h \
-    MarkDownHighlighter.h \
     Editor.h \
     NotesBrowser.h \
     SearchBox.h
     
 FORMS += \ 
     MainWindow.ui \
-    SettingsDialog.ui \
     SearchBox.ui
 
 #include cppCORE library

@@ -83,34 +83,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="Editor" name="plain">
-       <property name="font">
-        <font>
-         <family>Courier New</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::Shape::StyledPanel</enum>
-       </property>
-      </widget>
-      <widget class="QTextBrowser" name="html">
-       <property name="focusPolicy">
-        <enum>Qt::FocusPolicy::StrongFocus</enum>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::Shape::StyledPanel</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Shadow::Plain</enum>
-       </property>
-       <property name="openExternalLinks">
-        <bool>false</bool>
-       </property>
-       <property name="openLinks">
-        <bool>false</bool>
-       </property>
-      </widget>
+      <widget class="MarkdownEditor" name="editor" native="true"/>
      </widget>
     </item>
    </layout>
@@ -130,7 +103,6 @@
     </property>
     <addaction name="actionMarkdownHelp"/>
     <addaction name="separator"/>
-    <addaction name="actionSettings"/>
     <addaction name="actionOpenSettingsFiles"/>
     <addaction name="actionOpenNotesFolder"/>
     <addaction name="separator"/>
@@ -150,7 +122,6 @@
     <addaction name="actionSave"/>
     <addaction name="actionClose"/>
     <addaction name="separator"/>
-    <addaction name="actionOpenNotes"/>
     <addaction name="menuRecentFiles"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -167,31 +138,6 @@
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QToolBar" name="toolbar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <property name="iconSize">
-    <size>
-     <width>20</width>
-     <height>20</height>
-    </size>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-   <addaction name="actionAddLinkGlobal"/>
-   <addaction name="separator"/>
-   <addaction name="actionAddImage"/>
-   <addaction name="actionAddLinkMarkdown"/>
-   <addaction name="actionAddLinkAttachment"/>
-   <addaction name="separator"/>
-   <addaction name="actionGitPull"/>
-   <addaction name="actionGitPush"/>
-  </widget>
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
@@ -226,62 +172,12 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionSettings">
-   <property name="text">
-    <string>Settings</string>
-   </property>
-  </action>
   <action name="actionMarkdownHelp">
    <property name="text">
     <string>Markdown help</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
-   </property>
-  </action>
-  <action name="actionAddImage">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/image.png</normaloff>:/Resources/image.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add image</string>
-   </property>
-   <property name="toolTip">
-    <string>Add image - only for notes</string>
-   </property>
-  </action>
-  <action name="actionAddLinkGlobal">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/link_global.png</normaloff>:/Resources/link_global.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add global link</string>
-   </property>
-  </action>
-  <action name="actionAddLinkMarkdown">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/link_markdown.png</normaloff>:/Resources/link_markdown.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add local markdown link</string>
-   </property>
-   <property name="toolTip">
-    <string>Add local markdown link - only for notes</string>
-   </property>
-  </action>
-  <action name="actionAddLinkAttachment">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/link_attachment.png</normaloff>:/Resources/link_attachment.png</iconset>
-   </property>
-   <property name="text">
-    <string>Add attachment link</string>
-   </property>
-   <property name="toolTip">
-    <string>Add attachment link - only for notes</string>
    </property>
   </action>
   <action name="actionNew">
@@ -313,58 +209,13 @@
     <string>Ctrl+F</string>
    </property>
   </action>
-  <action name="actionExportHTML">
-   <property name="text">
-    <string>Export HTML</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+H</string>
-   </property>
-  </action>
-  <action name="actionOpenNotes">
-   <property name="text">
-    <string>Open notes</string>
-   </property>
-  </action>
-  <action name="actionDebug">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/debug.png</normaloff>:/Resources/debug.png</iconset>
-   </property>
-   <property name="text">
-    <string>Debug</string>
-   </property>
-  </action>
   <action name="actionOpenSettingsFiles">
    <property name="text">
     <string>Open settings files</string>
    </property>
   </action>
-  <action name="actionGitPull">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/git_pull.png</normaloff>:/Resources/git_pull.png</iconset>
-   </property>
-   <property name="text">
-    <string>Git Pull</string>
-   </property>
-  </action>
-  <action name="actionGitPush">
-   <property name="icon">
-    <iconset resource="resources.qrc">
-     <normaloff>:/Resources/git_push.png</normaloff>:/Resources/git_push.png</iconset>
-   </property>
-   <property name="text">
-    <string>Git Push</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>Editor</class>
-   <extends>QPlainTextEdit</extends>
-   <header>Editor.h</header>
-  </customwidget>
   <customwidget>
    <class>NotesBrowser</class>
    <extends>QTreeWidget</extends>
@@ -374,6 +225,12 @@
    <class>SearchBox</class>
    <extends>QWidget</extends>
    <header>SearchBox.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MarkdownEditor</class>
+   <extends>QWidget</extends>
+   <header>MarkdownEditor.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
