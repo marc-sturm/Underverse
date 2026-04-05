@@ -9,19 +9,15 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
     MainWindow.cpp \
-    Editor.cpp \
-    NotesBrowser.cpp \
-    SearchBox.cpp
+    NotesBrowser.cpp
     
 HEADERS += \
     MainWindow.h \
-    Editor.h \
-    NotesBrowser.h \
-    SearchBox.h
+    NotesBrowser.h
     
-FORMS += \ 
-    MainWindow.ui \
-    SearchBox.ui
+FORMS += \
+    NotesBrowser.ui \
+    MainWindow.ui
 
 #include cppCORE library
 INCLUDEPATH += $$PWD/../../src/cppCORE

@@ -47,6 +47,7 @@ private:
 	bool notes_mode_;
 
 	void closeEvent(QCloseEvent* event);
+	bool eventFilter(QObject* obj, QEvent* event); //event filter for search
 };
 
 #endif // MAINWINDOW_H

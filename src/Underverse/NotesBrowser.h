@@ -2,13 +2,12 @@
 #define NOTESBROWSER_H
 
 #include "Git.h"
-
-#include <QTreeWidget>
-#include <QFileSystemModel>
+#include <QWidget>
 #include <QFileIconProvider>
+#include "ui_notesbrowser.h"
 
 class NotesBrowser
-	: public QTreeWidget
+	: public QWidget
 {
 	Q_OBJECT
 
@@ -24,18 +23,24 @@ public slots:
 	void setSearchTerms(QStringList terms);
 
 signals:
+	//Signal emitted when search terms change
+	void searchTermsChanged(QStringList terms);
+	//Signal emitted when the file selection changes
 	void fileSelected(QString filename);
 
 protected slots:
 	void onItemSelected();
 	void onContextMenu(QPoint p);
-
+	void clearSearch();
+	void searchChanged();
 protected:
 	void updateView();
 	void performSearch();
 	void addChildren(QTreeWidgetItem* item, QString dir, const QHash<QString, GitStatus>& status);
 	bool checkValidFileName(QString name);
 
+private:
+	Ui::NotesBrowser ui_;
 	QFileIconProvider icon_provier_;
 	QString base_dir_;
 	QStringList search_terms_;

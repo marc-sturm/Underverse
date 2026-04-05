@@ -20,11 +20,11 @@ MainWindow::MainWindow(QWidget *parent)
 	, ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-	connect(ui->search, SIGNAL(textEdited(QStringList)), ui->browser, SLOT(setSearchTerms(QStringList)));
-	connect(ui->search, SIGNAL(textEdited(QStringList)), ui->editor, SLOT(setHighlightStrings(QStringList)));
-    connect(ui->browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
+	connect(ui->notes_browser, SIGNAL(searchTermsChanged(QStringList)), ui->editor, SLOT(setHighlightStrings(QStringList)));
+	connect(ui->notes_browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
 	connect(ui->editor, SIGNAL(modificationStateChanged()), this, SLOT(updateWindowTitle()));
+
+	installEventFilter(this);
 
 	initSettings();
 	applySettings();
@@ -117,12 +117,12 @@ void MainWindow::on_actionSearch_triggered()
 {
 	if (notes_mode_)
     {
-        ui->search->setFocus();
+		ui->notes_browser->setFocus();
     }
     else
     {
-        QString terms = QInputDialog::getText(this, "Search", "terms");
-        ui->search->setText(terms);
+		QStringList terms = QInputDialog::getText(this, "Search", "terms").split(' ', Qt::SkipEmptyParts);
+		ui->notes_browser->setSearchTerms(terms);
     }
 }
 
@@ -143,6 +143,22 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
 	ui->editor->clear();
 	event->accept();
+}
+
+bool MainWindow::eventFilter(QObject* obj, QEvent* event)
+{
+	if (event->type() == QEvent::KeyPress)
+	{
+		QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+
+		if (keyEvent->key() == Qt::Key_Search)
+		{
+			ui->notes_browser->setFocus();
+			return true;
+		}
+	}
+
+	return QObject::eventFilter(obj, event);
 }
 
 void MainWindow::loadFile(QString filename)
@@ -167,19 +183,17 @@ void MainWindow::loadFile(QString filename)
 	//update browser
 	if (filename.isEmpty() || ui->editor->file().startsWith(ui->editor->baseFolder()))
 	{
-		ui->browser->show();
-		ui->search->show();
+		ui->notes_browser->show();
 		notes_mode_ = true;
 
 		if (!filename.isEmpty())
 		{
-			ui->browser->setSelectedFile(filename);
+			ui->notes_browser->setSelectedFile(filename);
 		}
     }
     else
 	{
-		ui->browser->hide();
-		ui->search->hide();
+		ui->notes_browser->hide();
 		notes_mode_ = false;
 	}
 	updateWidths();
@@ -236,35 +250,35 @@ QByteArray MainWindow::execute(QString exe, QStringList args, QString wd)
 
 void MainWindow::initSettings()
 {
-    //general
+	//data folder
 	QString data_folder = Settings::string("data_folder", true);
     if (data_folder=="")
 	{
 		data_folder = qApp->applicationDirPath() + "/data/";
 		QDir(data_folder).mkpath(".");
+		Settings::setString("data_folder", data_folder);
 	}
-	Settings::setString("data_folder", data_folder);
 
 	//editor
-    Settings::setString("font", Settings::contains("font") ? Settings::string("font") : "Courier New");
-    Settings::setInteger("font_size", Settings::contains("font_size") ? Settings::integer("font_size") : 10);
-    Settings::setInteger("tab_width", Settings::contains("tab_width") ? Settings::integer("tab_width") : 4);
+	if (!Settings::contains("font")) Settings::setString("font", "Courier New");
+	if (!Settings::contains("font_size")) Settings::setInteger("font_size", 10);
+	if (!Settings::contains("tab_width")) Settings::setInteger("tab_width", 4);
 
 	//misc
-    Settings::setString("open_folder", Settings::contains("open_folder") ? Settings::string("open_folder") : qApp->applicationDirPath());
+	if (!Settings::contains("open_folder")) Settings::setString("open_folder", qApp->applicationDirPath());
 }
 
 void MainWindow::applySettings()
 {
     //general
 	QString data_folder = Settings::string("data_folder");
-	ui->browser->setBaseDirectory(data_folder);
+	ui->notes_browser->setBaseDirectory(data_folder);
 	ui->editor->setBaseFolder(data_folder);
 
     //editor
     QFont font(Settings::string("font"), Settings::integer("font_size"));
-	ui->editor->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).horizontalAdvance(' '));
 	ui->editor->setFont(font);
+	ui->editor->setTabStopWidth(Settings::integer("tab_width") * QFontMetrics(font).horizontalAdvance(' '));
 }
 
 void MainWindow::updateRecentFilesMenu()
@@ -280,6 +294,6 @@ void MainWindow::updateRecentFilesMenu()
 
 void MainWindow::updateWidths()
 {
-	int browser_width = ui->browser->isVisible() ? 250 : 0;
+	int browser_width = ui->notes_browser->isVisible() ? 250 : 0;
 	ui->splitter->setSizes(QList<int>() << browser_width << (width()-browser_width));
 }

@@ -18,71 +18,28 @@
     <normaloff>:/Resources/icon.png</normaloff>:/Resources/icon.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <property name="spacing">
      <number>3</number>
     </property>
     <property name="leftMargin">
-     <number>1</number>
+     <number>3</number>
     </property>
     <property name="topMargin">
-     <number>1</number>
+     <number>3</number>
     </property>
     <property name="rightMargin">
-     <number>1</number>
+     <number>3</number>
     </property>
     <property name="bottomMargin">
-     <number>1</number>
+     <number>3</number>
     </property>
     <item>
      <widget class="QSplitter" name="splitter">
-      <property name="frameShape">
-       <enum>QFrame::Shape::NoFrame</enum>
-      </property>
-      <property name="midLineWidth">
-       <number>0</number>
-      </property>
       <property name="orientation">
        <enum>Qt::Orientation::Horizontal</enum>
       </property>
-      <widget class="QWidget" name="layoutWidget">
-       <layout class="QVBoxLayout" name="browser_layout">
-        <property name="spacing">
-         <number>3</number>
-        </property>
-        <property name="leftMargin">
-         <number>0</number>
-        </property>
-        <property name="topMargin">
-         <number>0</number>
-        </property>
-        <property name="rightMargin">
-         <number>0</number>
-        </property>
-        <property name="bottomMargin">
-         <number>0</number>
-        </property>
-        <item>
-         <widget class="SearchBox" name="search" native="true">
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::StrongFocus</enum>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="NotesBrowser" name="browser">
-          <property name="focusPolicy">
-           <enum>Qt::FocusPolicy::StrongFocus</enum>
-          </property>
-          <column>
-           <property name="text">
-            <string notr="true">1</string>
-           </property>
-          </column>
-         </widget>
-        </item>
-       </layout>
-      </widget>
+      <widget class="NotesBrowser" name="notes_browser" native="true"/>
       <widget class="MarkdownEditor" name="editor" native="true"/>
      </widget>
     </item>
@@ -217,20 +174,15 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>NotesBrowser</class>
-   <extends>QTreeWidget</extends>
-   <header>NotesBrowser.h</header>
-  </customwidget>
-  <customwidget>
-   <class>SearchBox</class>
-   <extends>QWidget</extends>
-   <header>SearchBox.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>MarkdownEditor</class>
    <extends>QWidget</extends>
    <header>MarkdownEditor.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>NotesBrowser</class>
+   <extends>QWidget</extends>
+   <header>NotesBrowser.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

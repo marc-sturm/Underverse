@@ -3,7 +3,6 @@
 #include "Helper.h"
 #include "GUIHelper.h"
 #include "Git.h"
-
 #include <QFileSystemModel>
 #include <QDebug>
 #include <QMenu>
@@ -13,15 +12,30 @@
 #include <QProcess>
 
 NotesBrowser::NotesBrowser(QWidget* parent)
-	: QTreeWidget(parent)
+	: QWidget(parent)
+	, ui_()
 {
-	setColumnCount(1);
-	setHeaderHidden(true);
-	setFrameStyle(QFrame::NoFrame);
-	setContextMenuPolicy(Qt::CustomContextMenu);
-	setMinimumWidth(350);
+	ui_.setupUi(this);
+	connect(ui_.clear_btn, SIGNAL(clicked(bool)), this, SLOT(clearSearch()));
+	connect(ui_.search, SIGNAL(editingFinished()), this, SLOT(searchChanged()));
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(onContextMenu(QPoint)));
-	connect(this, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelected()));
+	connect(ui_.tree, SIGNAL(itemSelectionChanged()), this, SLOT(onItemSelected()));
+
+	//focus search box by default
+	setFocusProxy(ui_.search);
+}
+
+void NotesBrowser::clearSearch()
+{
+	ui_.search->clear();
+	searchChanged();
+}
+
+void NotesBrowser::searchChanged()
+{
+	search_terms_ = ui_.search->text().split(' ', Qt::SkipEmptyParts);
+	updateView();
+	emit searchTermsChanged(search_terms_);
 }
 
 void NotesBrowser::setBaseDirectory(QString dir)
@@ -38,7 +52,7 @@ void NotesBrowser::setSearchTerms(QStringList terms)
 
 void NotesBrowser::updateView()
 {
-	clear();
+	ui_.tree->clear();
 
 	if (search_terms_.count()==0)
 	{
@@ -52,7 +66,7 @@ void NotesBrowser::updateView()
 			GUIHelper::showException(this, e, "Error in getting git status");
 		}
 		addChildren(nullptr, base_dir_, status);
-		expandAll();
+		ui_.tree->expandAll();
 	}
 	else
 	{
@@ -72,7 +86,7 @@ void NotesBrowser::performSearch()
 		int score = 0;
 
 		QString content = Helper::fileText(file);
-		for (const QString& term: search_terms_)
+		for (const QString& term: std::as_const(search_terms_))
 		{
 			score += 100 * file.mid(base_dir_.size()).count(term, Qt::CaseInsensitive);
 			score += 1 * content.count(term, Qt::CaseInsensitive);
@@ -96,41 +110,41 @@ void NotesBrowser::performSearch()
 		item->setIcon(0, icon_provier_.icon(info));
 		item->setData(0, Qt::UserRole, info.canonicalFilePath());
 
-		addTopLevelItem(item);
+		ui_.tree->addTopLevelItem(item);
 	}
 }
 
 QString NotesBrowser::selectedFile() const
 {
-	if (selectedItems().count()==0) return "";
+	if (ui_.tree->selectedItems().count()==0) return "";
 
-	return selectedItems()[0]->data(0, Qt::UserRole).toString();
+	return ui_.tree->selectedItems()[0]->data(0, Qt::UserRole).toString();
 }
 
 void NotesBrowser::setSelectedFile(QString filename)
 {
 	QFileInfo info(filename);
 
-	QList<QTreeWidgetItem *> matches = findItems(info.fileName().replace(".md", ""), Qt::MatchExactly | Qt::MatchRecursive);
+	QList<QTreeWidgetItem *> matches = ui_.tree->findItems(info.fileName().replace(".md", ""), Qt::MatchExactly | Qt::MatchRecursive);
 	foreach(QTreeWidgetItem* item, matches)
 	{
 		if (item->data(0, Qt::UserRole).toString()==info.canonicalFilePath())
 		{
-			setCurrentItem(item);
+			ui_.tree->setCurrentItem(item);
 		}
 	}
 }
 
 void NotesBrowser::onItemSelected()
 {
-	if (selectedItems().count()==0) return;
+	if (ui_.tree->selectedItems().count()==0) return;
 
 	emit fileSelected(selectedFile());
 }
 
 void NotesBrowser::onContextMenu(QPoint p)
 {
-	QTreeWidgetItem* item = itemAt(p);
+	QTreeWidgetItem* item = ui_.tree->itemAt(p);
 
 	QString path;
 	if (item==nullptr)
@@ -139,7 +153,7 @@ void NotesBrowser::onContextMenu(QPoint p)
 	}
 	else
 	{
-		path = itemAt(p)->data(0, Qt::UserRole).toString();
+		path = ui_.tree->itemAt(p)->data(0, Qt::UserRole).toString();
 	}
 
 	//set up menu
@@ -232,7 +246,7 @@ void NotesBrowser::addChildren(QTreeWidgetItem* parent_item, QString dir, const 
 
 		if (parent_item==nullptr)
 		{
-			addTopLevelItem(item);
+			ui_.tree->addTopLevelItem(item);
 		}
 		else
 		{
