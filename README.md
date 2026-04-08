@@ -12,7 +12,7 @@
 
 ## Obtaining Underverse
 
-Please use the releases for Windows.  
+Please use the ZIP file of the latest releases for Windows.  
 If you want to use it on MacOS or Linux, you have to clone the GIT repository and build it yourself using Qt6.
 
 ## Bugs and Feature requests
