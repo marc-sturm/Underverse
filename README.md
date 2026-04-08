@@ -1,30 +1,20 @@
-# *Underverse* - A markdown-based note taking tool
+# *Underverse* - A free markdown editor
 
 ![Alt text](doc/Underverse.png)
 
-## Current state
-
-Underverse is usable, but there is no stable binary release.  
-*Use at your own risk!*
 
 ## Key features
 
+* Free (MIT license)
 * Portable
-* Markdown editor and note-taking tool in one application
-* Image/attachment/linking support
-* Text search in notes
-
-Explicitly not supported is:
-
-* Synchronizing notes between different devices!  
-  Use your favorite clould drive (e.g. GoogleDrive, OneDrive, DropBox) or version control system (e.g. SVN, GIT) for that!
+* Markdown editor with HTML preview and search
 
 
 ## Obtaining Underverse
 
-Please use git to clone the most recent development version:
+Please use the releases for Windows.  
+If you want to use it on MacOS or Linux, you have to clone the GIT repository and build it yourself using Qt6.
 
-    git clone --recursive https://github.com/marc-sturm/Underverse.git
+## Bugs and Feature requests
 
-Then, open the `src/Underverse.pro` file in QtCreator and build the application.  
-After a successfull build, the binary can be found in the `bin` folder.
+Please use the GIT issue tracker!

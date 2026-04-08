@@ -20,10 +20,9 @@ MainWindow::MainWindow(QWidget *parent)
 	, ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-	connect(ui->notes_browser, SIGNAL(searchTermsChanged(QStringList)), ui->editor, SLOT(setHighlightStrings(QStringList)));
-	connect(ui->notes_browser, SIGNAL(fileSelected(QString)), this, SLOT(loadFile(QString)));
+	ui->search_dock->hide();
 	connect(ui->editor, SIGNAL(modificationStateChanged()), this, SLOT(updateWindowTitle()));
-
+	connect(ui->search, SIGNAL(textEdited(QString)), this, SLOT(searchTermsChanged()));
 	installEventFilter(this);
 
 	initSettings();
@@ -33,11 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
     if (qApp->arguments().count()==2)
     {
         loadFile(qApp->arguments().at(1));
-    }
-    else
-    {
-        loadFile(""); //init GUI
-    }
+	}
 }
 
 MainWindow::~MainWindow()
@@ -45,15 +40,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::resizeEvent(QResizeEvent* event)
-{
-    QMainWindow::resizeEvent(event);
-    updateWidths();
-}
-
 void MainWindow::on_actionAbout_triggered()
 {
-	QMessageBox::about(this, "About " + QApplication::applicationName(),  "<p>" + QApplication::applicationName() + " " + QApplication::applicationVersion() +"<p>A free markdown editor under MIT license.");
+	QMessageBox::about(this, "About " + QApplication::applicationName(),  "<p>" + QApplication::applicationName() + " " + QApplication::applicationVersion() +"<p>A free simple markdown editor.");
 }
 
 void MainWindow::on_actionNew_triggered()
@@ -82,18 +71,13 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionClose_triggered()
 {
-    loadFile("");
+	ui->editor->clear();
+	updateWindowTitle();
 }
 
 void MainWindow::on_actionToggleEditing_triggered()
 {
 	ui->editor->toggleEditArea();
-    updateWidths();
-}
-
-void MainWindow::on_actionOpenNotesFolder_triggered()
-{
-	QDesktopServices::openUrl(QUrl(ui->editor->baseFolder()));
 }
 
 void MainWindow::on_actionOpenSettingsFiles_triggered()
@@ -115,15 +99,9 @@ void MainWindow::on_actionMarkdownHelp_triggered()
 
 void MainWindow::on_actionSearch_triggered()
 {
-	if (notes_mode_)
-    {
-		ui->notes_browser->setFocus();
-    }
-    else
-    {
-		QStringList terms = QInputDialog::getText(this, "Search", "terms").split(' ', Qt::SkipEmptyParts);
-		ui->notes_browser->setSearchTerms(terms);
-    }
+	ui->search_dock->show();
+	ui->search->setFocus();
+	ui->search->selectAll();
 }
 
 void MainWindow::openRecentFile()
@@ -153,7 +131,7 @@ bool MainWindow::eventFilter(QObject* obj, QEvent* event)
 
 		if (keyEvent->key() == Qt::Key_Search)
 		{
-			ui->notes_browser->setFocus();
+			on_actionSearch_triggered();
 			return true;
 		}
 	}
@@ -167,36 +145,12 @@ void MainWindow::loadFile(QString filename)
     if (filename!="" && !QFile::exists(filename))
     {
         QMessageBox::warning(this, "File missing", "File ' " + filename + "' does not exist!");
-        filename = "";
+		return;
     }
 
-	if (filename=="")
-	{
-		ui->editor->clear();
-    }
-    else
-	{
-		ui->editor->loadFile(filename);
-		addRecentFile(ui->editor->file());
-    }
-
-	//update browser
-	if (filename.isEmpty() || ui->editor->file().startsWith(ui->editor->baseFolder()))
-	{
-		ui->notes_browser->show();
-		notes_mode_ = true;
-
-		if (!filename.isEmpty())
-		{
-			ui->notes_browser->setSelectedFile(filename);
-		}
-    }
-    else
-	{
-		ui->notes_browser->hide();
-		notes_mode_ = false;
-	}
-	updateWidths();
+	ui->editor->loadFile(filename);
+	updateWindowTitle();
+	addRecentFile(ui->editor->file());
 }
 
 void MainWindow::updateWindowTitle()
@@ -209,11 +163,13 @@ void MainWindow::updateWindowTitle()
     setWindowTitle(title);
 }
 
+void MainWindow::searchTermsChanged()
+{
+	ui->editor->setHighlightStrings(ui->search->text().split(' ', Qt::SkipEmptyParts));
+}
+
 void MainWindow::addRecentFile(QString filename)
 {
-	//skip if on notes folder
-	if ((QFileInfo(filename).canonicalPath() + "/").startsWith(ui->editor->baseFolder())) return;
-
 	QStringList files = Settings::stringList("recent_files", true);
 
     files.prepend(filename.replace("\\", "/"));
@@ -250,15 +206,6 @@ QByteArray MainWindow::execute(QString exe, QStringList args, QString wd)
 
 void MainWindow::initSettings()
 {
-	//data folder
-	QString data_folder = Settings::string("data_folder", true);
-    if (data_folder=="")
-	{
-		data_folder = qApp->applicationDirPath() + "/data/";
-		QDir(data_folder).mkpath(".");
-		Settings::setString("data_folder", data_folder);
-	}
-
 	//editor
 	if (!Settings::contains("font")) Settings::setString("font", "Courier New");
 	if (!Settings::contains("font_size")) Settings::setInteger("font_size", 10);
@@ -270,11 +217,6 @@ void MainWindow::initSettings()
 
 void MainWindow::applySettings()
 {
-    //general
-	QString data_folder = Settings::string("data_folder");
-	ui->notes_browser->setBaseDirectory(data_folder);
-	ui->editor->setBaseFolder(data_folder);
-
     //editor
     QFont font(Settings::string("font"), Settings::integer("font_size"));
 	ui->editor->setFont(font);
@@ -292,8 +234,3 @@ void MainWindow::updateRecentFilesMenu()
     }
 }
 
-void MainWindow::updateWidths()
-{
-	int browser_width = ui->notes_browser->isVisible() ? 250 : 0;
-	ui->splitter->setSizes(QList<int>() << browser_width << (width()-browser_width));
-}

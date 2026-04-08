@@ -16,12 +16,10 @@ class MainWindow
 
 public:
     MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-    void resizeEvent(QResizeEvent* event);
+	~MainWindow();
     void initSettings();
 	void applySettings();
-    void updateRecentFilesMenu();
-    void updateWidths();
+	void updateRecentFilesMenu();
     void addRecentFile(QString filename);
     void removeRecentFile(QString filename);
 	QByteArray execute(QString exe, QStringList args, QString wd="");
@@ -33,7 +31,6 @@ public slots:
     void on_actionSave_triggered();
     void on_actionClose_triggered();
 	void on_actionToggleEditing_triggered();
-    void on_actionOpenNotesFolder_triggered();
 	void on_actionOpenSettingsFiles_triggered();
 	void on_actionMarkdownHelp_triggered();
 	void on_actionSearch_triggered();
@@ -41,10 +38,10 @@ public slots:
     void loadFile(QString filename);
     void openRecentFile();
 	void updateWindowTitle();
+	void searchTermsChanged();
 
 private:
 	Ui::MainWindow* ui;
-	bool notes_mode_;
 
 	void closeEvent(QCloseEvent* event);
 	bool eventFilter(QObject* obj, QEvent* event); //event filter for search

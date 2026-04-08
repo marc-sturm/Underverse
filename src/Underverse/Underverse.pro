@@ -8,15 +8,12 @@ TEMPLATE = app
 RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
-    MainWindow.cpp \
-    NotesBrowser.cpp
+    MainWindow.cpp
     
 HEADERS += \
-    MainWindow.h \
-    NotesBrowser.h
+    MainWindow.h
     
 FORMS += \
-    NotesBrowser.ui \
     MainWindow.ui
 
 #include cppCORE library
