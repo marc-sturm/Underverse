@@ -2,8 +2,5 @@
     <qresource prefix="/">
         <file>Resources/icon.png</file>
         <file>Resources/MarkdownHelp.md</file>
-        <file>Resources/remove.png</file>
-        <file>Resources/icon_blue.png</file>
-        <file>Resources/icon_grey.png</file>
     </qresource>
 </RCC>
